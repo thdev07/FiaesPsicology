@@ -1,7 +1,13 @@
 import supabase from '../../db.js';
 
-export const listAppointmentsService = (filters = {}) =>
-  supabase.from('appointments').select('*, patients(nome), users(nome), rooms(nome)');
+export function listAppointmentsService({ role, userId } = {}) {
+  let query = supabase.from('appointments').select('*, patients(nome, cpf), users(nome), rooms(nome)');
+  // service_role bypassa RLS — filtramos manualmente por psicólogo
+  if (role === 'psicologo' && userId) {
+    query = query.eq('psicologo_id', userId);
+  }
+  return query;
+}
 
 export const getAppointmentByIdService = (id) =>
   supabase.from('appointments').select('*, patients(nome), users(nome), rooms(nome)').eq('id', id).single();
@@ -27,3 +33,6 @@ export const updateAppointmentService = (id, data) =>
 
 export const cancelAppointmentService = (id) =>
   supabase.from('appointments').update({ status: 'cancelado' }).eq('id', id).select().single();
+
+export const concludeAppointmentService = (id) =>
+  supabase.from('appointments').update({ status: 'concluido' }).eq('id', id).select().single();

@@ -1,11 +1,75 @@
 import supabase from '../../db.js';
+import { encrypt, decrypt } from '../../utils/crypto.js';
 
-// TODO: implementar criptografia AES-256 nos campos evolucao e anamnese (LGPD)
-export const getRecordByConsultaService = (consultaId) =>
-  supabase.from('medical_records').select('*').eq('consulta_id', consultaId).single();
+const SELECT_FIELDS = `
+  *,
+  appointments(
+    data,
+    hora,
+    status,
+    patients(nome, cpf),
+    users(nome)
+  )
+`;
 
-export const createRecordService = (data) =>
-  supabase.from('medical_records').insert(data).select().single();
+function decryptRecord(record) {
+  if (!record) return null;
+  return {
+    ...record,
+    evolucao: decrypt(record.evolucao),
+    anamnese: decrypt(record.anamnese),
+  };
+}
 
-export const updateRecordService = (id, data) =>
-  supabase.from('medical_records').update(data).eq('id', id).select().single();
+export async function getRecordByConsultaService(consultaId) {
+  const { data, error } = await supabase
+    .from('medical_records')
+    .select(SELECT_FIELDS)
+    .eq('consulta_id', consultaId)
+    .maybeSingle();
+
+  if (error) return { data: null, error };
+  return { data: decryptRecord(data), error: null };
+}
+
+export async function createRecordService(payload) {
+  const { data, error } = await supabase
+    .from('medical_records')
+    .insert({
+      consulta_id: payload.consulta_id,
+      evolucao: encrypt(payload.evolucao ?? null),
+      anamnese: encrypt(payload.anamnese ?? null),
+      arquivos_anexos: payload.arquivos_anexos ?? [],
+      versao: 1,
+    })
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: decryptRecord(data), error: null };
+}
+
+export async function updateRecordService(id, payload) {
+  const { data: existing, error: fetchError } = await supabase
+    .from('medical_records')
+    .select('versao')
+    .eq('id', id)
+    .single();
+
+  if (fetchError) return { data: null, error: fetchError };
+
+  const { data, error } = await supabase
+    .from('medical_records')
+    .update({
+      evolucao: encrypt(payload.evolucao ?? null),
+      anamnese: encrypt(payload.anamnese ?? null),
+      versao: existing.versao + 1,
+      updated_at: new Date().toISOString(),
+    })
+    .eq('id', id)
+    .select(SELECT_FIELDS)
+    .single();
+
+  if (error) return { data: null, error };
+  return { data: decryptRecord(data), error: null };
+}

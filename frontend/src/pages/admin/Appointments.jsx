@@ -15,6 +15,7 @@ const STATUS_COLORS = {
   confirmado: { background: '#dcfce7', color: '#16a34a' },
   pendente: { background: '#fef9c3', color: '#ca8a04' },
   cancelado: { background: '#fee2e2', color: '#dc2626' },
+  concluido: { background: '#ede9fe', color: '#5b21b6' },
 };
 
 export default function Appointments() {

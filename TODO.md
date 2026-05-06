@@ -124,8 +124,10 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 - [x] `POST /api/appointments` — criar agendamento **com validação de conflito de sala**
 - [x] `PUT /api/appointments/:id` — atualizar agendamento
 - [x] `PATCH /api/appointments/:id/cancel` — cancelar agendamento
+- [x] `PATCH /api/appointments/:id/conclude` — concluir sessão (status `concluido`)
 - [x] Validação: não permitir dois agendamentos na mesma sala, data e hora (retorna 409)
 - [x] Tela admin: tabela com filtro por status, formulário completo, botão de cancelamento
+- [x] Painel psicólogo: botão "Concluir" por sessão, badge de status `concluido`
 
 **Testes:**
 - [ ] Criação de agendamento sem conflito retorna `201`
@@ -135,11 +137,11 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.5 Módulo de Prontuários (`/api/medical-records`)
 
-- [ ] `GET /api/medical-records/:consultaId` — buscar prontuário da consulta
-- [ ] `POST /api/medical-records` — criar prontuário (psicólogo)
-- [ ] `PUT /api/medical-records/:id` — atualizar prontuário (psicólogo)
-- [ ] Versionamento automático (campo `versao` incrementado a cada update)
-- [ ] Criptografia dos campos `evolucao` e `anamnese` (LGPD)
+- [x] `GET /api/medical-records/:consultaId` — buscar prontuário da consulta
+- [x] `POST /api/medical-records` — criar prontuário (psicólogo)
+- [x] `PUT /api/medical-records/:id` — atualizar prontuário (psicólogo)
+- [x] Versionamento automático (campo `versao` incrementado a cada update)
+- [x] Criptografia dos campos `evolucao` e `anamnese` (LGPD) — AES-256-GCM via `src/utils/crypto.js`
 
 **Testes:**
 - [ ] Psicólogo não acessa prontuário de paciente de outro psicólogo (retorna `403`)
@@ -148,11 +150,12 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.6 Módulo Financeiro (`/api/financial`)
 
-- [ ] `GET /api/financial` — listar transações (admin)
-- [ ] `GET /api/financial/summary` — resumo: receitas, despesas, saldo
-- [ ] `POST /api/financial` — registrar transação manualmente (admin)
+- [x] `GET /api/financial` — listar transações com join de paciente/psicólogo (admin)
+- [x] `GET /api/financial/summary` — resumo: receitas, despesas, saldo
+- [x] `POST /api/financial` — registrar transação manualmente (admin)
+- [x] `PUT /api/financial/:id` — editar transação (valor, categoria, status_pagamento)
 - [ ] Cálculo automático de repasse ao criar transação de consulta
-- [ ] Geração de transação automática ao confirmar agendamento
+- [x] Geração de transação automática ao confirmar agendamento (receita R$0/pendente, editável)
 
 **Testes:**
 - [ ] Psicólogo não acessa `GET /api/financial` (retorna `403`)
@@ -214,8 +217,8 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 - [x] Botões de ação rápida (Novo agendamento, Novo paciente, Nova sala)
 - [x] Página de gestão de usuários (`/admin/usuarios`) — criar/remover psicólogos e admins
 - [x] Página de convênios (`/admin/convenios`) — CRUD completo
-- [ ] Cards de resumo financeiro (receitas/despesas/saldo) — aguarda módulo financeiro
-- [ ] Página financeira com tabela de transações (`/admin/financeiro`)
+- [x] Cards de resumo financeiro (receitas/despesas/saldo) no Dashboard Admin
+- [x] Página financeira com tabela de transações, filtros, modal criar/editar (`/admin/financeiro`)
 - [ ] Página de relatórios por período (`/admin/relatorios`)
 
 **Testes:**
@@ -225,11 +228,12 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 3.4 Dashboard Psicólogo
 
-- [ ] Cards: sessões do dia, próximas sessões
-- [ ] Calendário drag-and-drop (`AgendaCalendar`) com `@fullcalendar/react`
-- [ ] Cores por status: verde=confirmado, amarelo=pendente, vermelho=cancelado
-- [ ] Página de pacientes: listagem + busca por nome/CPF
-- [ ] Página de prontuário: editor rich text com `@tiptap/react` + salvamento automático
+- [x] Cards: sessões do dia, próximos 7 dias, total de pacientes
+- [x] Calendário drag-and-drop (`AgendaCalendar`) com `@fullcalendar/react`
+- [x] Cores por status: verde=confirmado, amarelo=pendente, vermelho=cancelado, roxo=concluido
+- [x] Página de pacientes: listagem + busca por nome/CPF
+- [x] Página de prontuário: editor rich text com `@tiptap/react` + salvamento automático (2s debounce)
+- [x] Botão "Concluir sessão" no painel — atualiza status para `concluido`
 
 **Testes:**
 - [ ] Calendário exibe apenas agendamentos do psicólogo logado
@@ -363,4 +367,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-05 — Módulos de Usuários e Convênios concluídos (backend + telas admin); Dashboard Admin e Layout Base finalizados*
+*Última atualização: 2026-05-06 — Prontuários (criptografia AES-256-GCM + versionamento), Dashboard Psicólogo (FullCalendar + Tiptap + status concluido), Módulo Financeiro completo (backend + frontend), cards financeiros no Dashboard Admin*

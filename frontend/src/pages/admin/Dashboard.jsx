@@ -18,11 +18,16 @@ function StatCard({ label, value, sub, color }) {
   );
 }
 
+function fmtBRL(value) {
+  return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+}
+
 export default function AdminDashboard() {
   const navigate = useNavigate();
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [rooms, setRooms] = useState([]);
+  const [financial, setFinancial] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -30,10 +35,12 @@ export default function AdminDashboard() {
       api.get('/appointments').catch(() => []),
       api.get('/patients').catch(() => []),
       api.get('/rooms').catch(() => []),
-    ]).then(([appts, pats, rms]) => {
+      api.get('/financial/summary').catch(() => null),
+    ]).then(([appts, pats, rms, fin]) => {
       setAppointments(Array.isArray(appts) ? appts : []);
       setPatients(Array.isArray(pats) ? pats : []);
       setRooms(Array.isArray(rms) ? rms : []);
+      setFinancial(fin);
       setLoading(false);
     });
   }, []);
@@ -60,6 +67,13 @@ export default function AdminDashboard() {
         <StatCard label="Confirmados" value={confirmados.length} sub="agendamentos ativos" color="#10b981" />
         <StatCard label="Salas" value={rooms.length} sub="disponíveis" color="#64748b" />
         <StatCard label="Total de agendamentos" value={appointments.length} sub="todos os registros" color="#ef4444" />
+        {financial && (
+          <>
+            <StatCard label="Receitas" value={fmtBRL(financial.receitas)} sub="total geral" color="#16a34a" />
+            <StatCard label="Despesas" value={fmtBRL(financial.despesas)} sub="total geral" color="#dc2626" />
+            <StatCard label="Saldo" value={fmtBRL(financial.saldo)} sub="receitas − despesas" color={financial.saldo >= 0 ? '#3b82f6' : '#f59e0b'} />
+          </>
+        )}
       </div>
 
       <div style={s.section}>

@@ -12,7 +12,11 @@ import Rooms from './pages/admin/Rooms';
 import Appointments from './pages/admin/Appointments';
 import Users from './pages/admin/Users';
 import Convenios from './pages/admin/Convenios';
+import Financial from './pages/admin/Financial';
 import PsychologistDashboard from './pages/psychologist/Dashboard';
+import PsychologistAgenda from './pages/psychologist/Agenda';
+import PsychologistPatients from './pages/psychologist/Patients';
+import Records from './pages/psychologist/Records';
 import PatientDashboard from './pages/patient/Dashboard';
 
 function Unauthorized() {
@@ -57,7 +61,7 @@ export default function App() {
             <Route path="/admin/salas" element={<Rooms />} />
             <Route path="/admin/agendamentos" element={<Appointments />} />
             <Route path="/admin/usuarios" element={<Users />} />
-            <Route path="/admin/financeiro" element={<div>Financeiro — em breve</div>} />
+            <Route path="/admin/financeiro" element={<Financial />} />
             <Route path="/admin/convenios" element={<Convenios />} />
           </Route>
 
@@ -70,9 +74,9 @@ export default function App() {
             }
           >
             <Route path="/psicologo" element={<PsychologistDashboard />} />
-            <Route path="/psicologo/agenda" element={<div>Agenda — em breve</div>} />
-            <Route path="/psicologo/pacientes" element={<div>Pacientes — em breve</div>} />
-            <Route path="/psicologo/prontuarios" element={<div>Prontuários — em breve</div>} />
+            <Route path="/psicologo/agenda" element={<PsychologistAgenda />} />
+            <Route path="/psicologo/pacientes" element={<PsychologistPatients />} />
+            <Route path="/psicologo/prontuario/:consultaId" element={<Records />} />
           </Route>
 
           {/* Rotas Paciente */}

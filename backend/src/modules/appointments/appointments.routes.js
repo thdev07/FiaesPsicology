@@ -1,5 +1,5 @@
 import { Router } from 'express';
-import { listAppointments, getAppointmentById, createAppointment, updateAppointment, cancelAppointment } from './appointments.controller.js';
+import { listAppointments, getAppointmentById, createAppointment, updateAppointment, cancelAppointment, concludeAppointment } from './appointments.controller.js';
 import { authMiddleware } from '../../middlewares/auth.middleware.js';
 import { authorize } from '../../middlewares/rbac.middleware.js';
 
@@ -12,5 +12,6 @@ router.get('/:id', authorize('admin', 'psicologo', 'paciente'), getAppointmentBy
 router.post('/', authorize('admin', 'psicologo', 'paciente'), createAppointment);
 router.put('/:id', authorize('admin', 'psicologo'), updateAppointment);
 router.patch('/:id/cancel', authorize('admin', 'psicologo', 'paciente'), cancelAppointment);
+router.patch('/:id/conclude', authorize('admin', 'psicologo'), concludeAppointment);
 
 export default router;
