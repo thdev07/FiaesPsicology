@@ -7,3 +7,6 @@ export const createInsurancePlanService = (data) =>
 
 export const updateInsurancePlanService = (id, data) =>
   supabase.from('insurance_plans').update(data).eq('id', id).select().single();
+
+export const deleteInsurancePlanService = (id) =>
+  supabase.from('insurance_plans').delete().eq('id', id);

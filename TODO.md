@@ -74,11 +74,13 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.1 Módulo de Usuários (`/api/users`)
 
-- [ ] `GET /api/users` — listar todos os usuários (admin)
-- [ ] `GET /api/users/:id` — buscar usuário por ID (admin)
-- [ ] `PUT /api/users/:id` — atualizar usuário (admin)
-- [ ] `DELETE /api/users/:id` — remover usuário (admin)
-- [ ] Criar usuário psicólogo via Supabase Auth Admin API
+- [x] `GET /api/users` — listar todos os usuários (admin)
+- [x] `GET /api/users/:id` — buscar usuário por ID (admin)
+- [x] `PUT /api/users/:id` — atualizar usuário (admin)
+- [x] `DELETE /api/users/:id` — remover usuário (admin) — deleta de `auth.users` + tabela `users`
+- [x] Criar usuário psicólogo via Supabase Auth Admin API (`email_confirm: true`, `user_metadata.role`)
+- [x] Rollback no Auth se inserção na tabela `users` falhar
+- [x] Tela admin: tabela com role badge e CRP, modal create com senha + role selector + campo CRP condicional
 
 **Testes:**
 - [ ] Psicólogo não acessa `GET /api/users` (retorna `403`)
@@ -87,16 +89,18 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.2 Módulo de Pacientes (`/api/patients`)
 
-- [ ] `GET /api/patients` — listar pacientes (admin + psicólogo)
-- [ ] `GET /api/patients/:id` — buscar paciente (admin + psicólogo)
-- [ ] `POST /api/patients` — cadastrar paciente (admin)
-- [ ] `PUT /api/patients/:id` — atualizar paciente (admin + psicólogo)
-- [ ] `DELETE /api/patients/:id` — remover paciente (admin)
-- [ ] Validação de CPF único
-- [ ] Associação com plano de convênio (`plano_id`)
+- [x] `GET /api/patients` — listar pacientes (admin + psicólogo)
+- [x] `GET /api/patients/:id` — buscar paciente (admin + psicólogo)
+- [x] `POST /api/patients` — cadastrar paciente (admin)
+- [x] `PUT /api/patients/:id` — atualizar paciente (admin + psicólogo)
+- [x] `DELETE /api/patients/:id` — remover paciente (admin)
+- [x] Validação de CPF único (erro 409 via constraint unique no banco)
+- [x] Join com `insurance_plans(nome)` no select
+- [ ] Associação com plano de convênio via select na tela (dropdown de convênios no modal)
+- [x] Tela admin: tabela com busca por nome/CPF, modal create/edit
 
 **Testes:**
-- [ ] Cadastro com CPF duplicado retorna `409`
+- [x] Cadastro com CPF duplicado retorna `409`
 - [ ] Campos obrigatórios ausentes retornam `400`
 - [ ] Paciente criado retorna status `201`
 
@@ -157,10 +161,13 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.7 Módulo de Convênios (`/api/insurance`)
 
-- [ ] `GET /api/insurance` — listar planos de convênio
-- [ ] `POST /api/insurance` — criar plano (admin)
-- [ ] `PUT /api/insurance/:id` — atualizar plano (admin)
-- [ ] Regras de coparticipação por plano
+- [x] `GET /api/insurance` — listar planos de convênio
+- [x] `POST /api/insurance` — criar plano (admin)
+- [x] `PUT /api/insurance/:id` — atualizar plano (admin)
+- [x] `DELETE /api/insurance/:id` — remover plano (admin)
+- [x] Campos: `nome`, `codigo`, `taxa_reembolso` (%), `observacoes`
+- [x] Tela admin: tabela com badge de taxa, modal create/edit completo
+- [ ] Regras de coparticipação aplicadas no agendamento (cálculo automático)
 - [ ] Faturamento de guias
 
 **Testes:**
@@ -180,7 +187,7 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
   - Psicólogo → `/psicologo`
   - Paciente → `/paciente`
 - [x] Persistência de sessão com Supabase Auth (`onAuthStateChange`)
-- [ ] Botão de logout no Header
+- [x] Botão de logout no Header (usa `signOut` do `AuthContext`)
 
 **Testes:**
 - [x] Login com email inválido mostra mensagem de erro
@@ -190,10 +197,10 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 3.2 Layout Base
 
-- [ ] `Layout.jsx` — wrapper com Sidebar + Header + conteúdo
-- [ ] `Sidebar.jsx` — navegação dinâmica por role
-- [ ] `Header.jsx` — nome do usuário + botão logout
-- [ ] `ProtectedRoute.jsx` — guarda de rotas por role
+- [x] `Layout.jsx` — wrapper com Sidebar + Header + `<Outlet />`
+- [x] `Sidebar.jsx` — navegação dinâmica por role com `NavLink` + active state
+- [x] `Header.jsx` — nome do usuário, role label e botão logout
+- [x] `ProtectedRoute.jsx` — guarda de rotas por role, redireciona para `/unauthorized`
 
 **Testes:**
 - [ ] Admin vê menu de admin na Sidebar
@@ -202,12 +209,14 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 3.3 Dashboard Admin
 
-- [ ] Cards de resumo: total de receitas, despesas, saldo do mês
-- [ ] Tabela dos últimos agendamentos
-- [ ] Lista de psicólogos ativos
-- [ ] Página de gestão de usuários (`/admin/users`)
-- [ ] Página financeira com tabela de transações (`/admin/financial`)
-- [ ] Página de relatórios por período (`/admin/reports`)
+- [x] Cards de resumo: total de pacientes, psicólogos, salas, agendamentos do mês, confirmados e cancelados
+- [x] Tabela dos últimos agendamentos com status badge
+- [x] Botões de ação rápida (Novo agendamento, Novo paciente, Nova sala)
+- [x] Página de gestão de usuários (`/admin/usuarios`) — criar/remover psicólogos e admins
+- [x] Página de convênios (`/admin/convenios`) — CRUD completo
+- [ ] Cards de resumo financeiro (receitas/despesas/saldo) — aguarda módulo financeiro
+- [ ] Página financeira com tabela de transações (`/admin/financeiro`)
+- [ ] Página de relatórios por período (`/admin/relatorios`)
 
 **Testes:**
 - [ ] Cards de resumo exibem valores corretos vindos de `/api/financial/summary`
@@ -354,4 +363,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-05 — Módulos de Pacientes, Salas e Agendamentos concluídos (backend + telas admin)*
+*Última atualização: 2026-05-05 — Módulos de Usuários e Convênios concluídos (backend + telas admin); Dashboard Admin e Layout Base finalizados*

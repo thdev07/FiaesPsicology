@@ -16,6 +16,14 @@ export async function getUserById(req, res, next) {
   } catch (err) { next(err); }
 }
 
+export async function createUser(req, res, next) {
+  try {
+    const { data, error } = await usersService.createUserService(req.body);
+    if (error) throw error;
+    res.status(201).json(data);
+  } catch (err) { next(err); }
+}
+
 export async function updateUser(req, res, next) {
   try {
     const { data, error } = await usersService.updateUserService(req.params.id, req.body);
