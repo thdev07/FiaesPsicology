@@ -18,6 +18,7 @@ import PsychologistAgenda from './pages/psychologist/Agenda';
 import PsychologistPatients from './pages/psychologist/Patients';
 import Records from './pages/psychologist/Records';
 import PatientDashboard from './pages/patient/Dashboard';
+import LandingPage from './pages/LandingPage';
 
 function Unauthorized() {
   return (
@@ -92,7 +93,7 @@ export default function App() {
             <Route path="/paciente/documentos" element={<div>Documentos — em breve</div>} />
           </Route>
 
-          <Route path="/" element={<Navigate to="/login" replace />} />
+          <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AuthProvider>
