@@ -210,6 +210,26 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 - [ ] Psicólogo vê apenas seu menu
 - [ ] Acesso direto a rota de admin por psicólogo redireciona para `/unauthorized`
 
+### 3.0 Landing Page (`/`)
+
+- [x] Página de apresentação do sistema (`LandingPage.jsx`) substituindo o redirect `/` → `/login`
+- [x] Navbar fixa com scroll suave e botão "Entrar no sistema"
+- [x] Seção Hero com gradiente escuro, headline com gradiente azul/roxo e imagem mockup
+- [x] Barra de métricas (3 Perfis, 7 Módulos, 100% Digital, Tempo Real)
+- [x] Grid de 9 cards de funcionalidades com hover effects
+- [x] Seção de 3 perfis de acesso (Admin, Psicólogo, Paciente) com listas de funcionalidades
+- [x] CTA final com gradiente azul/índigo
+- [x] Footer com copyright © 2025 thdev07
+- [x] Responsividade via hook `useIsMobile()` (mobile < 768px)
+- [x] `index.html` com título e meta description atualizados
+- [ ] **Refatorar ícones com biblioteca (ex: Lucide React ou React Icons)** — atualmente usa emojis como placeholder
+- [ ] Adicionar animações de entrada (fade-in ao scroll) com Intersection Observer ou Framer Motion
+- [ ] Adicionar screenshot real do sistema no Hero após interface finalizada
+
+**Nota técnica:** A landing page usa 100% inline styles e emojis como ícones temporários.
+Quando a interface estiver mais madura, integrar uma biblioteca de ícones (Lucide React, React Icons ou Heroicons) e
+revisar a iconografia para maior consistência visual em toda a aplicação (landing + painel interno).
+
 ### 3.3 Dashboard Admin
 
 - [x] Cards de resumo: total de pacientes, psicólogos, salas, agendamentos do mês, confirmados e cancelados
@@ -367,4 +387,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-06 — Prontuários (criptografia AES-256-GCM + versionamento), Dashboard Psicólogo (FullCalendar + Tiptap + status concluido), Módulo Financeiro completo (backend + frontend), cards financeiros no Dashboard Admin*
+*Última atualização: 2026-05-06 — Prontuários (criptografia AES-256-GCM + versionamento), Dashboard Psicólogo (FullCalendar + Tiptap + status concluido), Módulo Financeiro completo (backend + frontend), cards financeiros no Dashboard Admin, Landing Page completa (seção 3.0)*
