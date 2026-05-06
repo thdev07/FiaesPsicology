@@ -30,7 +30,7 @@ export default function Sidebar() {
 
   return (
     <aside style={styles.aside}>
-      <div style={styles.logo}>PsyManager</div>
+      <div style={styles.logo}>FiaesPsychology</div>
       <nav style={styles.nav}>
         {items.map(({ to, label, end }) => (
           <NavLink

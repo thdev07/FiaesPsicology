@@ -1,4 +1,4 @@
-# PsyManager — Roadmap de Desenvolvimento
+# FiaesPsychology — Roadmap de Desenvolvimento
 
 Sistema de Gestão para Clínicas de Psicologia  
 Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)

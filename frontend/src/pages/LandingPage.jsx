@@ -118,7 +118,7 @@ function Navbar({ onLogin }) {
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <span style={{ width: 34, height: 34, borderRadius: 8, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.1rem' }}>🧠</span>
-          <span style={{ color: THEME.white, fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.01em' }}>FiaesPsicology</span>
+          <span style={{ color: THEME.white, fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.01em' }}>FiaesPsychology</span>
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? '0.75rem' : '1.75rem' }}>
           {!mobile && (
@@ -217,7 +217,7 @@ function HeroSection({ onLogin }) {
               transform: 'rotate(1.5deg)',
               border: '1px solid rgba(255,255,255,0.08)',
             }}>
-              <img src={heroImg} alt="FiaesPsicology dashboard" style={{ width: '100%', display: 'block' }} />
+              <img src={heroImg} alt="FiaesPsychology dashboard" style={{ width: '100%', display: 'block' }} />
             </div>
           </div>
         )}
@@ -403,7 +403,7 @@ function Footer({ onLogin }) {
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
             <span style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1rem' }}>🧠</span>
             <div>
-              <p style={{ color: THEME.white, fontWeight: 800, fontSize: '0.95rem', margin: 0 }}>FiaesPsicology</p>
+              <p style={{ color: THEME.white, fontWeight: 800, fontSize: '0.95rem', margin: 0 }}>FiaesPsychology</p>
               <p style={{ color: '#475569', fontSize: '0.78rem', margin: 0 }}>Gestão clínica inteligente</p>
             </div>
           </div>
@@ -414,7 +414,7 @@ function Footer({ onLogin }) {
           </div>
         </div>
         <div style={{ borderTop: '1px solid #1e293b', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: mobile ? 'column' : 'row', gap: '0.5rem' }}>
-          <p style={{ color: '#334155', fontSize: '0.8rem', margin: 0 }}>© 2025 FiaesPsicology — thdev07. Todos os direitos reservados.</p>
+          <p style={{ color: '#334155', fontSize: '0.8rem', margin: 0 }}>© 2025 FiaesPsychology — thdev07. Todos os direitos reservados.</p>
           <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>Construído com React + Supabase</p>
         </div>
       </div>

@@ -1,4 +1,4 @@
-Documentação de Requisitos: Sistema de Gestão Psicológica (PsyManager Clone)
+Documentação de Requisitos: Sistema de Gestão Psicológica (FiaesPsychology)
 1. Visão Geral
 Sistema Web integrado para gestão de clínicas de psicologia, focado em automação de processos clínicos (prontuários), administrativos (agenda/salas) e financeiros (fluxo de caixa/convênios).
 
