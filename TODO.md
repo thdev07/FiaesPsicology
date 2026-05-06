@@ -102,11 +102,12 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.3 Módulo de Salas (`/api/rooms`)
 
-- [ ] `GET /api/rooms` — listar salas
-- [ ] `GET /api/rooms/:id` — detalhes da sala
-- [ ] `POST /api/rooms` — criar sala (admin)
-- [ ] `PUT /api/rooms/:id` — atualizar sala (admin)
-- [ ] `DELETE /api/rooms/:id` — remover sala (admin)
+- [x] `GET /api/rooms` — listar salas
+- [x] `GET /api/rooms/:id` — detalhes da sala
+- [x] `POST /api/rooms` — criar sala (admin)
+- [x] `PUT /api/rooms/:id` — atualizar sala (admin)
+- [x] `DELETE /api/rooms/:id` — remover sala (admin)
+- [x] Tela admin: listagem em cards com recursos como tags, modal de cadastro/edição
 
 **Testes:**
 - [ ] Sala criada com sucesso retorna `201`
@@ -114,16 +115,17 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 2.4 Módulo de Agendamentos (`/api/appointments`)
 
-- [ ] `GET /api/appointments` — listar (filtros por data, psicólogo, status)
-- [ ] `GET /api/appointments/:id` — detalhes do agendamento
-- [ ] `POST /api/appointments` — criar agendamento **com validação de conflito de sala**
-- [ ] `PUT /api/appointments/:id` — atualizar agendamento
-- [ ] `PATCH /api/appointments/:id/cancel` — cancelar agendamento
-- [ ] Validação: não permitir dois agendamentos na mesma sala, data e hora
+- [x] `GET /api/appointments` — listar com join de paciente, psicólogo e sala
+- [x] `GET /api/appointments/:id` — detalhes do agendamento
+- [x] `POST /api/appointments` — criar agendamento **com validação de conflito de sala**
+- [x] `PUT /api/appointments/:id` — atualizar agendamento
+- [x] `PATCH /api/appointments/:id/cancel` — cancelar agendamento
+- [x] Validação: não permitir dois agendamentos na mesma sala, data e hora (retorna 409)
+- [x] Tela admin: tabela com filtro por status, formulário completo, botão de cancelamento
 
 **Testes:**
 - [ ] Criação de agendamento sem conflito retorna `201`
-- [ ] Criação com conflito de sala retorna `409 "Sala já ocupada neste horário"`
+- [x] Criação com conflito de sala retorna `409 "Sala já ocupada neste horário"`
 - [ ] Cancelamento atualiza status para `cancelado`
 - [ ] Agendamento cancelado libera a sala para novo agendamento
 
@@ -352,4 +354,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-05 — FASE 1 concluída (schema + autenticação + páginas Login/Register)*
+*Última atualização: 2026-05-05 — Módulos de Pacientes, Salas e Agendamentos concluídos (backend + telas admin)*
