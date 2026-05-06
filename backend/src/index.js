@@ -10,6 +10,7 @@ import appointmentsRoutes from './modules/appointments/appointments.routes.js';
 import medicalRecordsRoutes from './modules/medical-records/medical-records.routes.js';
 import transactionsRoutes from './modules/financial/transactions.routes.js';
 import insuranceRoutes from './modules/insurance/insurance.routes.js';
+import reportsRoutes from './modules/reports/reports.routes.js';
 
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
@@ -29,6 +30,7 @@ app.use('/api/appointments', appointmentsRoutes);
 app.use('/api/medical-records', medicalRecordsRoutes);
 app.use('/api/financial', transactionsRoutes);
 app.use('/api/insurance', insuranceRoutes);
+app.use('/api/reports', reportsRoutes);
 
 app.use(errorMiddleware);
 

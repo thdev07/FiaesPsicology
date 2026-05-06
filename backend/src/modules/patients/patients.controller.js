@@ -1,5 +1,6 @@
 import * as patientsService from './patients.service.js';
 
+
 export async function listPatients(req, res, next) {
   try {
     const { data, error } = await patientsService.listPatientsService();
@@ -12,6 +13,15 @@ export async function getPatientById(req, res, next) {
   try {
     const { data, error } = await patientsService.getPatientByIdService(req.params.id);
     if (error) throw error;
+    res.json(data);
+  } catch (err) { next(err); }
+}
+
+export async function getMyPatient(req, res, next) {
+  try {
+    const { data, error } = await patientsService.getPatientByEmailService(req.user.email);
+    if (error) throw error;
+    if (!data) return res.status(404).json({ error: 'Ficha clínica não encontrada para este usuário.' });
     res.json(data);
   } catch (err) { next(err); }
 }

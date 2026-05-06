@@ -77,10 +77,6 @@ export default function Login() {
           </button>
         </form>
 
-        <p style={styles.link}>
-          Paciente novo?{' '}
-          <a href="/register">Cadastre-se</a>
-        </p>
       </div>
     </div>
   );

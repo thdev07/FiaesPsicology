@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
-const EMPTY_FORM = { nome: '', cpf: '', data_nascimento: '', historico_clinico: '' };
+const EMPTY_FORM = { nome: '', cpf: '', email: '', telefone: '', data_nascimento: '', historico_clinico: '', plano_id: '' };
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
+  const [insurancePlans, setInsurancePlans] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
@@ -13,7 +14,10 @@ export default function Patients() {
   const [saving, setSaving] = useState(false);
   const [search, setSearch] = useState('');
 
-  useEffect(() => { fetchPatients(); }, []);
+  useEffect(() => {
+    fetchPatients();
+    api.get('/insurance').then(setInsurancePlans).catch(() => {});
+  }, []);
 
   async function fetchPatients() {
     setLoading(true);
@@ -38,8 +42,11 @@ export default function Patients() {
     setForm({
       nome: patient.nome ?? '',
       cpf: patient.cpf ?? '',
+      email: patient.email ?? '',
+      telefone: patient.telefone ?? '',
       data_nascimento: patient.data_nascimento ?? '',
       historico_clinico: patient.historico_clinico ?? '',
+      plano_id: patient.plano_id ?? '',
     });
     setShowModal(true);
   }
@@ -49,10 +56,11 @@ export default function Patients() {
     setSaving(true);
     setError('');
     try {
+      const payload = { ...form, plano_id: form.plano_id || null };
       if (editing) {
-        await api.put(`/patients/${editing.id}`, form);
+        await api.put(`/patients/${editing.id}`, payload);
       } else {
-        await api.post('/patients', form);
+        await api.post('/patients', payload);
       }
       setShowModal(false);
       fetchPatients();
@@ -73,10 +81,14 @@ export default function Patients() {
     }
   }
 
-  const filtered = patients.filter((p) =>
-    p.nome.toLowerCase().includes(search.toLowerCase()) ||
-    (p.cpf ?? '').includes(search)
-  );
+  const filtered = patients.filter((p) => {
+    const q = search.toLowerCase();
+    return (
+      p.nome.toLowerCase().includes(q) ||
+      (p.cpf ?? '').includes(search) ||
+      (p.email ?? '').toLowerCase().includes(q)
+    );
+  });
 
   return (
     <div>
@@ -103,7 +115,7 @@ export default function Patients() {
           <table style={s.table}>
             <thead>
               <tr>
-                {['Nome', 'CPF', 'Nascimento', 'Convênio', 'Ações'].map((h) => (
+                {['Nome', 'Email', 'Telefone', 'CPF', 'Convênio', 'Ações'].map((h) => (
                   <th key={h} style={s.th}>{h}</th>
                 ))}
               </tr>
@@ -112,8 +124,9 @@ export default function Patients() {
               {filtered.map((p) => (
                 <tr key={p.id} style={s.tr}>
                   <td style={s.td}>{p.nome}</td>
+                  <td style={s.td}>{p.email ?? '—'}</td>
+                  <td style={s.td}>{p.telefone ?? '—'}</td>
                   <td style={s.td}>{p.cpf ?? '—'}</td>
-                  <td style={s.td}>{p.data_nascimento ? new Date(p.data_nascimento).toLocaleDateString('pt-BR') : '—'}</td>
                   <td style={s.td}>{p.insurance_plans?.nome ?? '—'}</td>
                   <td style={s.td}>
                     <button onClick={() => openEdit(p)} style={s.btnEdit}>Editar</button>
@@ -139,6 +152,23 @@ export default function Patients() {
                 style={s.input}
               />
 
+              <label style={s.label}>Email</label>
+              <input
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="email@exemplo.com"
+                style={s.input}
+              />
+
+              <label style={s.label}>Telefone</label>
+              <input
+                value={form.telefone}
+                onChange={(e) => setForm({ ...form, telefone: e.target.value })}
+                placeholder="(00) 90000-0000"
+                style={s.input}
+              />
+
               <label style={s.label}>CPF</label>
               <input
                 value={form.cpf}
@@ -154,6 +184,20 @@ export default function Patients() {
                 onChange={(e) => setForm({ ...form, data_nascimento: e.target.value })}
                 style={s.input}
               />
+
+              <label style={s.label}>Plano de convênio</label>
+              <select
+                value={form.plano_id}
+                onChange={(e) => setForm({ ...form, plano_id: e.target.value })}
+                style={s.input}
+              >
+                <option value="">Particular (sem convênio)</option>
+                {insurancePlans.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.nome} — {p.coparticipacao_percentual}% copart.
+                  </option>
+                ))}
+              </select>
 
               <label style={s.label}>Histórico clínico</label>
               <textarea

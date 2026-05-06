@@ -5,7 +5,8 @@ export async function listAppointments(req, res, next) {
   try {
     const role = req.user.user_metadata?.role;
     const userId = req.user.id;
-    const { data, error } = await appointmentsService.listAppointmentsService({ role, userId });
+    const userEmail = req.user.email;
+    const { data, error } = await appointmentsService.listAppointmentsService({ role, userId, userEmail });
     if (error) throw error;
     res.json(data);
   } catch (err) { next(err); }

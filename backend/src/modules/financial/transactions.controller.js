@@ -1,5 +1,12 @@
 import * as transactionsService from './transactions.service.js';
 
+export async function getMyDebts(req, res, next) {
+  try {
+    const data = await transactionsService.getMyDebtsService(req.user.email);
+    res.json(data);
+  } catch (err) { next(err); }
+}
+
 export async function listTransactions(req, res, next) {
   try {
     const { data, error } = await transactionsService.listTransactionsService();
@@ -18,8 +25,7 @@ export async function createTransaction(req, res, next) {
 
 export async function updateTransaction(req, res, next) {
   try {
-    const { data, error } = await transactionsService.updateTransactionService(req.params.id, req.body);
-    if (error) throw error;
+    const { data } = await transactionsService.updateTransactionService(req.params.id, req.body);
     if (!data) return res.status(404).json({ error: 'Transação não encontrada' });
     res.json(data);
   } catch (err) { next(err); }

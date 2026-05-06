@@ -239,7 +239,7 @@ revisar a iconografia para maior consistência visual em toda a aplicação (lan
 - [x] Página de convênios (`/admin/convenios`) — CRUD completo
 - [x] Cards de resumo financeiro (receitas/despesas/saldo) no Dashboard Admin
 - [x] Página financeira com tabela de transações, filtros, modal criar/editar (`/admin/financeiro`)
-- [ ] Página de relatórios por período (`/admin/relatorios`)
+- [x] Página de relatórios por período (`/admin/relatorios`)
 
 **Testes:**
 - [ ] Cards de resumo exibem valores corretos vindos de `/api/financial/summary`
@@ -254,6 +254,7 @@ revisar a iconografia para maior consistência visual em toda a aplicação (lan
 - [x] Página de pacientes: listagem + busca por nome/CPF
 - [x] Página de prontuário: editor rich text com `@tiptap/react` + salvamento automático (2s debounce)
 - [x] Botão "Concluir sessão" no painel — atualiza status para `concluido`
+- [x] Lista de prontuários (`/psicologo/prontuarios`) — consultas com filtro de status e botão de acesso ao prontuário
 
 **Testes:**
 - [ ] Calendário exibe apenas agendamentos do psicólogo logado
@@ -263,9 +264,11 @@ revisar a iconografia para maior consistência visual em toda a aplicação (lan
 
 ### 3.5 Dashboard Paciente
 
-- [ ] Cards: próxima sessão, débitos pendentes
-- [ ] Portal de agendamento online
-- [ ] Histórico de consultas
+- [x] Cards: próxima sessão, débitos pendentes
+- [x] Histórico de consultas (`/paciente/agendamentos`) — seções Próximas e Histórico com filtro de status
+- [x] Extrato de cobranças (`/paciente/documentos`) — resumo financeiro + tabela de transações
+- [x] Página "Meu Perfil" (`/paciente/perfil`) — ficha clínica via `GET /patients/me`
+- [ ] Portal de agendamento online (paciente agenda consulta diretamente)
 - [ ] Download de recibos e laudos liberados
 
 **Testes:**
@@ -387,4 +390,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-06 — Prontuários (criptografia AES-256-GCM + versionamento), Dashboard Psicólogo (FullCalendar + Tiptap + status concluido), Módulo Financeiro completo (backend + frontend), cards financeiros no Dashboard Admin, Landing Page completa (seção 3.0)*
+*Última atualização: 2026-05-06 — Dashboard Paciente completo (cards, agendamentos, documentos, perfil), Lista de Prontuários do Psicólogo, Relatórios Admin (período, financeiro, por psicólogo), fluxo de cadastro Option A (sem registro público)*

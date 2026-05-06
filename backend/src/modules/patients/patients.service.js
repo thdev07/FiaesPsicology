@@ -6,6 +6,9 @@ export const listPatientsService = () =>
 export const getPatientByIdService = (id) =>
   supabase.from('patients').select('*, insurance_plans(nome)').eq('id', id).single();
 
+export const getPatientByEmailService = (email) =>
+  supabase.from('patients').select('*, insurance_plans(nome)').eq('email', email).maybeSingle();
+
 export const createPatientService = (data) =>
   supabase.from('patients').insert(data).select().single();
 

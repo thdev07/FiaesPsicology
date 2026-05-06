@@ -10,6 +10,7 @@ const MENUS = {
     { to: '/admin/usuarios', label: 'Usuários' },
     { to: '/admin/financeiro', label: 'Financeiro' },
     { to: '/admin/convenios', label: 'Convênios' },
+    { to: '/admin/relatorios', label: 'Relatórios' },
   ],
   psicologo: [
     { to: '/psicologo', label: 'Dashboard', end: true },
@@ -21,6 +22,7 @@ const MENUS = {
     { to: '/paciente', label: 'Dashboard', end: true },
     { to: '/paciente/agendamentos', label: 'Agendamentos' },
     { to: '/paciente/documentos', label: 'Documentos' },
+    { to: '/paciente/perfil', label: 'Meu Perfil' },
   ],
 };
 

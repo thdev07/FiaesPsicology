@@ -1,12 +1,24 @@
 import supabase from '../../db.js';
 
-export function listAppointmentsService({ role, userId } = {}) {
+export async function listAppointmentsService({ role, userId, userEmail } = {}) {
   let query = supabase.from('appointments').select('*, patients(nome, cpf), users(nome), rooms(nome)');
-  // service_role bypassa RLS — filtramos manualmente por psicólogo
+
   if (role === 'psicologo' && userId) {
     query = query.eq('psicologo_id', userId);
+  } else if (role === 'paciente' && userEmail) {
+    const { data: patient } = await supabase
+      .from('patients')
+      .select('id')
+      .eq('email', userEmail)
+      .maybeSingle();
+    if (patient) {
+      query = query.eq('paciente_id', patient.id);
+    } else {
+      return { data: [], error: null };
+    }
   }
-  return query;
+
+  return query.order('data', { ascending: false }).order('hora', { ascending: false });
 }
 
 export const getAppointmentByIdService = (id) =>

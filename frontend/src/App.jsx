@@ -4,7 +4,6 @@ import { ProtectedRoute } from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
 import Login from './pages/auth/Login';
-import Register from './pages/auth/Register';
 
 import AdminDashboard from './pages/admin/Dashboard';
 import Patients from './pages/admin/Patients';
@@ -13,11 +12,16 @@ import Appointments from './pages/admin/Appointments';
 import Users from './pages/admin/Users';
 import Convenios from './pages/admin/Convenios';
 import Financial from './pages/admin/Financial';
+import Reports from './pages/admin/Reports';
 import PsychologistDashboard from './pages/psychologist/Dashboard';
 import PsychologistAgenda from './pages/psychologist/Agenda';
 import PsychologistPatients from './pages/psychologist/Patients';
 import Records from './pages/psychologist/Records';
+import ProntuariosList from './pages/psychologist/ProntuariosList';
 import PatientDashboard from './pages/patient/Dashboard';
+import PatientAppointments from './pages/patient/Appointments';
+import PatientDocuments from './pages/patient/Documents';
+import PatientProfile from './pages/patient/Profile';
 import LandingPage from './pages/LandingPage';
 
 function Unauthorized() {
@@ -46,7 +50,6 @@ export default function App() {
         <Routes>
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />
-          <Route path="/register" element={<Register />} />
           <Route path="/unauthorized" element={<Unauthorized />} />
 
           {/* Rotas Admin */}
@@ -64,6 +67,7 @@ export default function App() {
             <Route path="/admin/usuarios" element={<Users />} />
             <Route path="/admin/financeiro" element={<Financial />} />
             <Route path="/admin/convenios" element={<Convenios />} />
+            <Route path="/admin/relatorios" element={<Reports />} />
           </Route>
 
           {/* Rotas Psicólogo */}
@@ -77,6 +81,7 @@ export default function App() {
             <Route path="/psicologo" element={<PsychologistDashboard />} />
             <Route path="/psicologo/agenda" element={<PsychologistAgenda />} />
             <Route path="/psicologo/pacientes" element={<PsychologistPatients />} />
+            <Route path="/psicologo/prontuarios" element={<ProntuariosList />} />
             <Route path="/psicologo/prontuario/:consultaId" element={<Records />} />
           </Route>
 
@@ -89,8 +94,9 @@ export default function App() {
             }
           >
             <Route path="/paciente" element={<PatientDashboard />} />
-            <Route path="/paciente/agendamentos" element={<div>Agendamentos — em breve</div>} />
-            <Route path="/paciente/documentos" element={<div>Documentos — em breve</div>} />
+            <Route path="/paciente/agendamentos" element={<PatientAppointments />} />
+            <Route path="/paciente/documentos" element={<PatientDocuments />} />
+            <Route path="/paciente/perfil" element={<PatientProfile />} />
           </Route>
 
           <Route path="/" element={<LandingPage />} />
