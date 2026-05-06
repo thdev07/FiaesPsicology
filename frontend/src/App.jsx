@@ -7,6 +7,9 @@ import Login from './pages/auth/Login';
 import Register from './pages/auth/Register';
 
 import AdminDashboard from './pages/admin/Dashboard';
+import Patients from './pages/admin/Patients';
+import Rooms from './pages/admin/Rooms';
+import Appointments from './pages/admin/Appointments';
 import PsychologistDashboard from './pages/psychologist/Dashboard';
 import PatientDashboard from './pages/patient/Dashboard';
 
@@ -48,9 +51,9 @@ export default function App() {
             }
           >
             <Route path="/admin" element={<AdminDashboard />} />
-            <Route path="/admin/pacientes" element={<div>Pacientes — em breve</div>} />
-            <Route path="/admin/salas" element={<div>Salas — em breve</div>} />
-            <Route path="/admin/agendamentos" element={<div>Agendamentos — em breve</div>} />
+            <Route path="/admin/pacientes" element={<Patients />} />
+            <Route path="/admin/salas" element={<Rooms />} />
+            <Route path="/admin/agendamentos" element={<Appointments />} />
             <Route path="/admin/usuarios" element={<div>Usuários — em breve</div>} />
             <Route path="/admin/financeiro" element={<div>Financeiro — em breve</div>} />
             <Route path="/admin/convenios" element={<div>Convênios — em breve</div>} />

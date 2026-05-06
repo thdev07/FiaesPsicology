@@ -10,7 +10,13 @@ async function request(path, options = {}) {
       ...options.headers,
     },
   });
-  if (!res.ok) throw await res.json();
+
+  if (!res.ok) {
+    const err = await res.json().catch(() => ({ error: `Erro ${res.status}` }));
+    throw err;
+  }
+
+  if (res.status === 204) return null;
   return res.json();
 }
 
