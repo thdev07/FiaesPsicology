@@ -36,10 +36,10 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 1.1 Supabase — Schema e RLS
 
-- [ ] Executar `supabase/migrations/001_initial_schema.sql` no SQL Editor do Supabase
-- [ ] Verificar criação das tabelas: `users`, `patients`, `rooms`, `appointments`, `medical_records`, `transactions`, `insurance_plans`
-- [ ] Validar políticas RLS (Row Level Security) por role
-- [ ] Criar usuário admin inicial via Supabase Dashboard
+- [x] Executar `supabase/migrations/001_initial_schema.sql` no SQL Editor do Supabase
+- [x] Verificar criação das tabelas: `users`, `patients`, `rooms`, `appointments`, `medical_records`, `transactions`, `insurance_plans`
+- [x] Validar políticas RLS (Row Level Security) por role
+- [x] Criar usuário admin inicial via Supabase Dashboard + definir `role` em `auth.users.raw_user_meta_data`
 
 **Testes:**
 - [ ] Testar que psicólogo **não consegue** acessar dados de outro psicólogo via SQL direto
@@ -48,19 +48,21 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 1.2 Autenticação
 
-- [ ] Configurar variáveis de ambiente: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` no backend
-- [ ] Configurar variáveis de ambiente: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` no frontend
-- [ ] Implementar `POST /api/auth/signin` — login com email/senha
-- [ ] Implementar `POST /api/auth/signout` — logout
-- [ ] Implementar `GET /api/auth/me` — retorna usuário logado
-- [ ] Implementar `AuthContext` no frontend (sessão global + role)
-- [ ] Implementar `ProtectedRoute` com redirecionamento por role
-- [ ] Implementar página de Login (`/login`)
-- [ ] Implementar página de Cadastro de paciente (`/register`)
+- [x] Configurar variáveis de ambiente: `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY` no backend
+- [x] Configurar variáveis de ambiente: `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY` no frontend
+- [x] Implementar `POST /api/auth/signin` — login com email/senha
+- [x] Implementar `POST /api/auth/signout` — logout
+- [x] Implementar `GET /api/auth/me` — retorna usuário logado
+- [x] Implementar `AuthContext` no frontend (sessão global + role + função `signOut`)
+- [x] Implementar `ProtectedRoute` com redirecionamento por role
+- [x] Implementar página de Login (`/login`) com redirecionamento automático por role
+- [x] Implementar página de Cadastro de paciente (`/register`)
+- [x] Implementar `App.jsx` com roteamento completo (BrowserRouter + todas as rotas protegidas)
 
 **Testes:**
-- [ ] Login com credenciais válidas retorna token JWT
-- [ ] Login com credenciais inválidas retorna `401`
+- [x] Login com credenciais válidas redireciona para dashboard correto por role
+- [x] Login com credenciais inválidas exibe mensagem de erro real do Supabase
+- [x] Usuário sem `role` no metadata recebe mensagem específica
 - [ ] Rota protegida sem token retorna `401`
 - [ ] Rota protegida com role errado retorna `403`
 - [ ] Logout invalida a sessão
@@ -169,17 +171,18 @@ Stack: Node.js + Express · React + Vite · Supabase (PostgreSQL)
 
 ### 3.1 Autenticação
 
-- [ ] Página de Login com validação de formulário
-- [ ] Página de Cadastro (paciente)
-- [ ] Redirecionamento automático por role após login:
+- [x] Página de Login com validação de formulário e mensagem de erro real
+- [x] Página de Cadastro (paciente) com confirmação de senha
+- [x] Redirecionamento automático por role após login:
   - Admin → `/admin`
   - Psicólogo → `/psicologo`
   - Paciente → `/paciente`
-- [ ] Persistência de sessão com Supabase Auth
+- [x] Persistência de sessão com Supabase Auth (`onAuthStateChange`)
 - [ ] Botão de logout no Header
 
 **Testes:**
-- [ ] Login com email inválido mostra mensagem de erro
+- [x] Login com email inválido mostra mensagem de erro
+- [x] Usuário sem role definida recebe aviso específico
 - [ ] Usuário não autenticado é redirecionado para `/login`
 - [ ] Logout limpa a sessão e redireciona para `/login`
 
@@ -349,4 +352,4 @@ fix(financial): corrigir cálculo de repasse para convênio
 
 ---
 
-*Última atualização: 2026-05-05*
+*Última atualização: 2026-05-05 — FASE 1 concluída (schema + autenticação + páginas Login/Register)*
