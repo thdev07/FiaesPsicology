@@ -9,8 +9,19 @@ export const getPatientByIdService = (id) =>
 export const getPatientByEmailService = (email) =>
   supabase.from('patients').select('*, insurance_plans(nome)').eq('email', email).maybeSingle();
 
-export const createPatientService = (data) =>
-  supabase.from('patients').insert(data).select().single();
+export async function createPatientService({ password, ...patientData }) {
+  if (password && patientData.email) {
+    const { data: authData, error: authError } = await supabase.auth.admin.createUser({
+      email: patientData.email,
+      password,
+      email_confirm: true,
+      user_metadata: { nome: patientData.nome, role: 'paciente' },
+    });
+    if (authError) throw authError;
+  }
+
+  return supabase.from('patients').insert(patientData).select().single();
+}
 
 export const updatePatientService = (id, data) =>
   supabase.from('patients').update(data).eq('id', id).select().single();

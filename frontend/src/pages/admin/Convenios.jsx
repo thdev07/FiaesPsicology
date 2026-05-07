@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
-const EMPTY_FORM = { nome: '', codigo: '', taxa_reembolso: '', observacoes: '' };
+const EMPTY_FORM = { nome: '', codigo: '', valor_consulta: '', taxa_reembolso: '', observacoes: '' };
 
 export default function Convenios() {
   const [plans, setPlans] = useState([]);
@@ -38,6 +38,7 @@ export default function Convenios() {
     setForm({
       nome: plan.nome ?? '',
       codigo: plan.codigo ?? '',
+      valor_consulta: plan.valor_consulta ?? '',
       taxa_reembolso: plan.taxa_reembolso ?? '',
       observacoes: plan.observacoes ?? '',
     });
@@ -52,6 +53,7 @@ export default function Convenios() {
     const payload = {
       nome: form.nome,
       codigo: form.codigo || null,
+      valor_consulta: form.valor_consulta ? Number(form.valor_consulta) : null,
       taxa_reembolso: form.taxa_reembolso ? Number(form.taxa_reembolso) : null,
       observacoes: form.observacoes || null,
     };
@@ -98,7 +100,7 @@ export default function Convenios() {
           <table style={s.table}>
             <thead>
               <tr>
-                {['Nome', 'Código', 'Taxa reembolso', 'Observações', 'Ações'].map((h) => (
+                {['Nome', 'Código', 'Valor consulta', 'Taxa reembolso', 'Observações', 'Ações'].map((h) => (
                   <th key={h} style={s.th}>{h}</th>
                 ))}
               </tr>
@@ -108,6 +110,11 @@ export default function Convenios() {
                 <tr key={p.id} style={s.tr}>
                   <td style={s.td}><strong>{p.nome}</strong></td>
                   <td style={s.td}>{p.codigo ?? '—'}</td>
+                  <td style={s.td}>
+                    {p.valor_consulta != null
+                      ? <span style={s.badgeBlue}>R$ {Number(p.valor_consulta).toFixed(2)}</span>
+                      : '—'}
+                  </td>
                   <td style={s.td}>
                     {p.taxa_reembolso != null
                       ? <span style={s.badge}>{p.taxa_reembolso}%</span>
@@ -148,6 +155,17 @@ export default function Convenios() {
                 value={form.codigo}
                 onChange={(e) => setForm({ ...form, codigo: e.target.value })}
                 placeholder="Ex: UNI-001"
+                style={s.input}
+              />
+
+              <label style={s.label}>Valor da consulta (R$)</label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                value={form.valor_consulta}
+                onChange={(e) => setForm({ ...form, valor_consulta: e.target.value })}
+                placeholder="Ex: 150.00"
                 style={s.input}
               />
 
@@ -200,6 +218,7 @@ const s = {
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { background: '#dcfce7', color: '#16a34a', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 },
+  badgeBlue: { background: '#dbeafe', color: '#1d4ed8', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 },
   btnPrimary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnSecondary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },

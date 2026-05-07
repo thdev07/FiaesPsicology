@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { api } from '../../services/api';
 
-const EMPTY_FORM = { nome: '', cpf: '', email: '', telefone: '', data_nascimento: '', historico_clinico: '', plano_id: '' };
+const EMPTY_FORM = { nome: '', cpf: '', email: '', telefone: '', data_nascimento: '', historico_clinico: '', plano_id: '', password: '' };
 
 export default function Patients() {
   const [patients, setPatients] = useState([]);
@@ -56,16 +56,17 @@ export default function Patients() {
     setSaving(true);
     setError('');
     try {
-      const payload = { ...form, plano_id: form.plano_id || null };
+      const { password, ...rest } = form;
+      const payload = { ...rest, plano_id: form.plano_id || null };
       if (editing) {
         await api.put(`/patients/${editing.id}`, payload);
       } else {
-        await api.post('/patients', payload);
+        await api.post('/patients', { ...payload, password: password || undefined });
       }
       setShowModal(false);
       fetchPatients();
     } catch (err) {
-      setError(err?.error ?? 'Erro ao salvar paciente.');
+      setError(err?.error ?? err?.message ?? 'Erro ao salvar paciente.');
     } finally {
       setSaving(false);
     }
@@ -199,6 +200,20 @@ export default function Patients() {
                 ))}
               </select>
 
+              {!editing && (
+                <>
+                  <label style={s.label}>Senha de acesso ao portal</label>
+                  <input
+                    type="password"
+                    value={form.password}
+                    onChange={(e) => setForm({ ...form, password: e.target.value })}
+                    placeholder="Deixe em branco para não criar acesso"
+                    style={s.input}
+                  />
+                  <p style={s.hint}>Se preenchido, o paciente poderá fazer login com este e-mail e senha.</p>
+                </>
+              )}
+
               <label style={s.label}>Histórico clínico</label>
               <textarea
                 value={form.historico_clinico}
@@ -246,4 +261,5 @@ const s = {
   label: { fontSize: '0.85rem', fontWeight: 600, color: '#4a5568', marginTop: '0.4rem' },
   input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.95rem', width: '100%', boxSizing: 'border-box' },
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' },
+  hint: { fontSize: '0.78rem', color: '#94a3b8', margin: '0.1rem 0 0.2rem' },
 };

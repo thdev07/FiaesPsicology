@@ -49,3 +49,4 @@ export async function deletePatient(req, res, next) {
     res.status(204).send();
   } catch (err) { next(err); }
 }
+
