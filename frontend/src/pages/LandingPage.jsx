@@ -4,66 +4,10 @@ import { motion } from 'framer-motion';
 import {
   CalendarDays, FileText, DollarSign, Users, DoorOpen, Shield,
   LayoutDashboard, Lock, Zap, Crown, Brain, UserCheck,
-  BrainCircuit, CheckCircle2, ArrowRight,
+  BrainCircuit, CheckCircle2, ArrowRight, TrendingUp,
+  ClipboardList, Bell, Star, ChevronRight,
 } from 'lucide-react';
 import heroImg from '../assets/imgLandingPage.png';
-
-const THEME = {
-  blue: '#3b82f6',
-  blueHover: '#2563eb',
-  indigo: '#6366f1',
-  dark: '#1e293b',
-  darkDeep: '#0f172a',
-  slate: '#475569',
-  muted: '#94a3b8',
-  surface: '#f8fafc',
-  white: '#ffffff',
-  border: '#e2e8f0',
-  green: '#10b981',
-};
-
-const FEATURES = [
-  { Icon: CalendarDays, color: '#3b82f6', title: 'Agenda Inteligente', desc: 'Visualize e gerencie todos os agendamentos em um calendário interativo, com suporte a múltiplos psicólogos e salas.' },
-  { Icon: FileText, color: '#6366f1', title: 'Prontuários Digitais', desc: 'Registre evoluções clínicas com editor de texto rico, seguro e acessível a qualquer momento.' },
-  { Icon: DollarSign, color: '#10b981', title: 'Gestão Financeira', desc: 'Controle receitas, despesas e saldo em tempo real. Transações geradas automaticamente ao confirmar consultas.' },
-  { Icon: Users, color: '#f59e0b', title: 'Gestão de Pacientes', desc: 'Cadastro completo com histórico de consultas, documentos e informações de convênio em um só lugar.' },
-  { Icon: DoorOpen, color: '#ef4444', title: 'Salas e Recursos', desc: 'Gerencie as salas da clínica, associando cada agendamento ao espaço correto para evitar conflitos.' },
-  { Icon: Shield, color: '#8b5cf6', title: 'Convênios', desc: 'Cadastre convênios aceitos pela clínica e vincule pacientes aos seus planos de saúde com facilidade.' },
-  { Icon: LayoutDashboard, color: '#0ea5e9', title: 'Dashboard em Tempo Real', desc: 'Painéis com métricas de sessões, pacientes, pendências e saldo financeiro atualizados em tempo real.' },
-  { Icon: Lock, color: '#64748b', title: 'Segurança de Dados', desc: 'Prontuários com criptografia AES-256. Acesso por perfil com autenticação segura via Supabase Auth.' },
-  { Icon: Zap, color: '#f97316', title: 'Multi-perfil', desc: 'Três perfis distintos — Administrador, Psicólogo e Paciente — cada um com seu próprio painel e permissões.' },
-];
-
-const PROFILES = [
-  {
-    Icon: Crown,
-    title: 'Administrador',
-    color: '#3b82f6',
-    desc: 'Visão completa da clínica com controle total sobre todos os módulos.',
-    items: ['Dashboard com métricas globais', 'Gestão de usuários e psicólogos', 'Controle financeiro completo', 'Gerenciar salas e convênios', 'Todos os agendamentos'],
-  },
-  {
-    Icon: Brain,
-    title: 'Psicólogo',
-    color: '#6366f1',
-    desc: 'Foco na prática clínica com agenda própria e acesso aos pacientes.',
-    items: ['Agenda pessoal interativa', 'Prontuários dos seus pacientes', 'Marcar sessões como concluídas', 'Lista de pacientes ativos', 'Dashboard com sessões do dia'],
-  },
-  {
-    Icon: UserCheck,
-    title: 'Paciente',
-    color: '#10b981',
-    desc: 'Portal dedicado para acompanhar sua jornada de cuidado.',
-    items: ['Visualizar próximas sessões', 'Histórico de consultas', 'Acesso a documentos', 'Informações do convênio', 'Portal personalizado'],
-  },
-];
-
-const STATS = [
-  { value: '3', label: 'Perfis de acesso' },
-  { value: '7', label: 'Módulos integrados' },
-  { value: '100%', label: 'Digital e seguro' },
-  { value: 'Real', label: 'Dados em tempo real' },
-];
 
 function useIsMobile() {
   const [mobile, setMobile] = useState(window.innerWidth < 768);
@@ -75,43 +19,55 @@ function useIsMobile() {
   return mobile;
 }
 
-function useHover() {
-  const [hovered, setHovered] = useState(false);
-  return [hovered, { onMouseEnter: () => setHovered(true), onMouseLeave: () => setHovered(false) }];
-}
+const FEATURES = [
+  { Icon: CalendarDays, color: '#3b82f6', bg: '#eff6ff', title: 'Agenda Inteligente', desc: 'Calendário interativo com arrastar e soltar. Visualize todos os agendamentos por psicólogo, sala ou status.' },
+  { Icon: FileText, color: '#6366f1', bg: '#eef2ff', title: 'Prontuários Digitais', desc: 'Editor rich text com salvamento automático. Dados criptografados com AES-256 para conformidade com LGPD.' },
+  { Icon: DollarSign, color: '#10b981', bg: '#ecfdf5', title: 'Gestão Financeira', desc: 'Receitas e repasses calculados automaticamente ao confirmar sessões. Dashboard com saldo em tempo real.' },
+  { Icon: Users, color: '#f59e0b', bg: '#fffbeb', title: 'Gestão de Pacientes', desc: 'Ficha completa com histórico clínico, convênio, documentos e extrato financeiro em um só lugar.' },
+  { Icon: Bell, color: '#ef4444', bg: '#fff1f2', title: 'Notificações Automáticas', desc: 'E-mails de confirmação, cancelamento e lembretes 24h antes enviados automaticamente via Resend.' },
+  { Icon: Shield, color: '#8b5cf6', bg: '#f5f3ff', title: 'Convênios e Planos', desc: 'Cadastre planos com valor de consulta, taxa de reembolso e coparticipação. Vinculado ao paciente.' },
+  { Icon: LayoutDashboard, color: '#0ea5e9', bg: '#f0f9ff', title: 'Dashboard em Tempo Real', desc: 'Métricas de sessões, pacientes, pendências e saldo atualizadas ao vivo para admin e psicólogos.' },
+  { Icon: Lock, color: '#64748b', bg: '#f8fafc', title: 'Segurança de Dados', desc: 'Criptografia ponta a ponta nos prontuários. RBAC por perfil e autenticação segura via Supabase Auth.' },
+  { Icon: Zap, color: '#f97316', bg: '#fff7ed', title: 'Multi-perfil', desc: 'Admin, Psicólogo e Paciente — cada um com painel personalizado, permissões e experiência distintas.' },
+];
 
-function NavBtn({ onLogin }) {
-  const [h, handlers] = useHover();
-  return (
-    <button
-      onClick={onLogin}
-      {...handlers}
-      style={{
-        padding: '0.5rem 1.25rem',
-        borderRadius: '8px',
-        border: 'none',
-        background: h ? THEME.blueHover : THEME.blue,
-        color: THEME.white,
-        fontWeight: 700,
-        fontSize: '0.875rem',
-        cursor: 'pointer',
-        transition: 'background 0.2s',
-        letterSpacing: '0.01em',
-        display: 'flex',
-        alignItems: 'center',
-        gap: '0.4rem',
-      }}
-    >
-      Entrar no sistema <ArrowRight size={14} />
-    </button>
-  );
-}
+const PROFILES = [
+  {
+    Icon: Crown, title: 'Administrador', color: '#3b82f6',
+    desc: 'Visão completa com controle total sobre todos os módulos da clínica.',
+    items: ['Dashboard com métricas globais', 'Gestão de usuários e psicólogos', 'Controle financeiro completo', 'Salas, convênios e relatórios', 'Todos os agendamentos'],
+  },
+  {
+    Icon: Brain, title: 'Psicólogo', color: '#8b5cf6',
+    desc: 'Foco total na prática clínica com agenda própria e acesso aos seus pacientes.',
+    items: ['Agenda pessoal interativa', 'Prontuários dos seus pacientes', 'Marcar sessões como concluídas', 'Lista de pacientes ativos', 'Dashboard com sessões do dia'],
+  },
+  {
+    Icon: UserCheck, title: 'Paciente', color: '#10b981',
+    desc: 'Portal dedicado para acompanhar sua jornada de cuidado com a clínica.',
+    items: ['Solicitar agendamentos', 'Histórico de consultas', 'Extrato de cobranças', 'Perfil e dados do convênio', 'Notificações automáticas'],
+  },
+];
 
+const STEPS = [
+  { Icon: ClipboardList, color: '#3b82f6', step: '01', title: 'Cadastre sua clínica', desc: 'Crie as salas, psicólogos, convênios e pacientes em poucos minutos.' },
+  { Icon: CalendarDays, color: '#6366f1', step: '02', title: 'Gerencie agendamentos', desc: 'Confirme sessões, e o sistema cria eventos no Calendar e envia e-mails automaticamente.' },
+  { Icon: TrendingUp, color: '#10b981', step: '03', title: 'Acompanhe os resultados', desc: 'Visualize receitas, prontuários e métricas no dashboard em tempo real.' },
+];
+
+const STATS = [
+  { value: '3', label: 'Perfis de acesso', Icon: Users, color: '#3b82f6' },
+  { value: '9+', label: 'Módulos integrados', Icon: LayoutDashboard, color: '#6366f1' },
+  { value: '100%', label: 'Digital e seguro', Icon: Lock, color: '#10b981' },
+  { value: 'AES-256', label: 'Criptografia', Icon: Shield, color: '#f59e0b' },
+];
+
+// ── Navbar ──────────────────────────────────────────────────────────────────
 function Navbar({ onLogin }) {
   const mobile = useIsMobile();
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
-    const fn = () => setScrolled(window.scrollY > 10);
+    const fn = () => setScrolled(window.scrollY > 12);
     window.addEventListener('scroll', fn);
     return () => window.removeEventListener('scroll', fn);
   }, []);
@@ -119,128 +75,107 @@ function Navbar({ onLogin }) {
   return (
     <nav style={{
       position: 'sticky', top: 0, zIndex: 100,
-      background: scrolled ? 'rgba(15,23,42,0.97)' : '#0f172a',
-      backdropFilter: 'blur(8px)',
-      borderBottom: scrolled ? '1px solid #1e293b' : '1px solid transparent',
-      transition: 'all 0.2s',
+      background: scrolled ? 'rgba(9,17,32,0.95)' : 'transparent',
+      backdropFilter: scrolled ? 'blur(16px)' : 'none',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : '1px solid transparent',
+      transition: 'all 0.3s ease',
     }}>
-      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 64 }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-          <div style={{ width: 34, height: 34, borderRadius: 8, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <BrainCircuit size={18} color="#fff" />
+      <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+          <div style={{ width: 36, height: 36, borderRadius: 9, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 4px 12px rgba(59,130,246,0.35)' }}>
+            <BrainCircuit size={19} color="#fff" />
           </div>
-          <span style={{ color: THEME.white, fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.01em' }}>FiaesPsychology</span>
+          <span style={{ color: '#fff', fontWeight: 800, fontSize: '1.05rem', letterSpacing: '-0.02em' }}>FiaesPsychology</span>
         </div>
-        <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? '0.75rem' : '1.75rem' }}>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: mobile ? '0.75rem' : '2rem' }}>
           {!mobile && (
             <>
-              <a href="#features" style={{ color: THEME.muted, fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none' }}>Funcionalidades</a>
-              <a href="#perfis" style={{ color: THEME.muted, fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none' }}>Perfis</a>
+              <a href="#como-funciona" style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'color 0.2s' }}>Como funciona</a>
+              <a href="#features" style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'color 0.2s' }}>Funcionalidades</a>
+              <a href="#perfis" style={{ color: '#94a3b8', fontSize: '0.875rem', fontWeight: 500, textDecoration: 'none', transition: 'color 0.2s' }}>Perfis</a>
             </>
           )}
-          <NavBtn onLogin={onLogin} />
+          <motion.button
+            onClick={onLogin}
+            whileHover={{ scale: 1.04 }}
+            whileTap={{ scale: 0.97 }}
+            style={{ padding: '0.5rem 1.2rem', borderRadius: 8, border: 'none', background: 'linear-gradient(135deg,#3b82f6,#4f46e5)', color: '#fff', fontWeight: 700, fontSize: '0.875rem', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem', boxShadow: '0 4px 12px rgba(59,130,246,0.3)', fontFamily: 'inherit' }}
+          >
+            Entrar <ChevronRight size={14} />
+          </motion.button>
         </div>
       </div>
     </nav>
   );
 }
 
+// ── Hero ─────────────────────────────────────────────────────────────────────
 function HeroSection({ onLogin }) {
   const mobile = useIsMobile();
-  const [h1, hh1] = useHover();
-  const [h2, hh2] = useHover();
 
   return (
-    <section style={{
-      background: 'linear-gradient(135deg, #0f172a 0%, #1a2942 45%, #1e293b 100%)',
-      padding: mobile ? '4rem 1.5rem 3rem' : '6rem 1.5rem 5rem',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        position: 'absolute', inset: 0, pointerEvents: 'none',
-        background: 'radial-gradient(ellipse 80% 60% at 60% 0%, rgba(99,102,241,0.18) 0%, transparent 70%)',
-      }} />
-      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: '3rem', flexDirection: mobile ? 'column' : 'row' }}>
-        <motion.div
-          style={{ flex: '0 0 55%', zIndex: 1 }}
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.5 }}
-        >
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(99,102,241,0.15)', border: '1px solid rgba(99,102,241,0.35)', borderRadius: 20, padding: '0.35rem 0.9rem', marginBottom: '1.5rem' }}>
-            <span style={{ width: 7, height: 7, borderRadius: '50%', background: '#6366f1', display: 'inline-block' }} />
-            <span style={{ color: '#a5b4fc', fontSize: '0.8rem', fontWeight: 600, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Sistema de gestão clínica</span>
-          </div>
+    <section style={{ background: 'linear-gradient(160deg, #060d1e 0%, #0c1932 50%, #111827 100%)', padding: mobile ? '4.5rem 1.5rem 3.5rem' : '7rem 1.5rem 5.5rem', position: 'relative', overflow: 'hidden' }}>
+      {/* Animated orbs */}
+      <motion.div animate={{ scale: [1, 1.25, 1], opacity: [0.3, 0.55, 0.3], x: [0, 20, 0] }} transition={{ duration: 10, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ position: 'absolute', width: 600, height: 600, borderRadius: '50%', background: 'radial-gradient(circle, rgba(59,130,246,0.2) 0%, transparent 65%)', top: -200, left: -100, pointerEvents: 'none' }} />
+      <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.2, 0.4, 0.2], x: [0, -20, 0] }} transition={{ duration: 14, repeat: Infinity, ease: 'easeInOut', delay: 4 }}
+        style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 65%)', bottom: -150, right: -100, pointerEvents: 'none' }} />
+      <motion.div animate={{ scale: [1, 1.15, 1], opacity: [0.15, 0.3, 0.15] }} transition={{ duration: 8, repeat: Infinity, ease: 'easeInOut', delay: 2 }}
+        style={{ position: 'absolute', width: 300, height: 300, borderRadius: '50%', background: 'radial-gradient(circle, rgba(16,185,129,0.15) 0%, transparent 65%)', top: '40%', left: '40%', pointerEvents: 'none' }} />
 
-          <h1 style={{ fontSize: 'clamp(2rem,5vw,3.6rem)', fontWeight: 800, color: THEME.white, lineHeight: 1.1, letterSpacing: '-0.03em', margin: '0 0 1.25rem' }}>
-            Gestão completa para sua{' '}
-            <span style={{ background: 'linear-gradient(90deg,#3b82f6,#6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
-              clínica de psicologia
+      {/* Grid pattern */}
+      <div style={{ position: 'absolute', inset: 0, pointerEvents: 'none', backgroundImage: 'linear-gradient(rgba(255,255,255,0.025) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.025) 1px, transparent 1px)', backgroundSize: '48px 48px' }} />
+
+      <div style={{ maxWidth: 1200, margin: '0 auto', display: 'flex', alignItems: 'center', gap: '4rem', flexDirection: mobile ? 'column' : 'row', position: 'relative', zIndex: 1 }}>
+        {/* Text */}
+        <motion.div style={{ flex: '0 0 52%' }} initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}>
+          <motion.div initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} transition={{ duration: 0.4, delay: 0.1 }}
+            style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(99,102,241,0.12)', border: '1px solid rgba(99,102,241,0.3)', borderRadius: 20, padding: '0.35rem 1rem', marginBottom: '1.75rem' }}>
+            <motion.span animate={{ opacity: [1, 0.3, 1] }} transition={{ duration: 2, repeat: Infinity }}
+              style={{ width: 7, height: 7, borderRadius: '50%', background: '#818cf8', display: 'inline-block' }} />
+            <span style={{ color: '#a5b4fc', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Sistema de gestão clínica</span>
+          </motion.div>
+
+          <h1 style={{ fontSize: 'clamp(2.2rem,5.5vw,3.8rem)', fontWeight: 900, color: '#fff', lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 1.5rem' }}>
+            Gestão completa para{' '}
+            <span style={{ background: 'linear-gradient(90deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
+              clínicas de psicologia
             </span>
           </h1>
 
-          <p style={{ fontSize: 'clamp(1rem,2vw,1.125rem)', color: '#94a3b8', lineHeight: 1.7, margin: '0 0 2rem', maxWidth: 520 }}>
+          <p style={{ fontSize: 'clamp(1rem,2vw,1.15rem)', color: '#64748b', lineHeight: 1.75, margin: '0 0 2.25rem', maxWidth: 500 }}>
             Do agendamento ao prontuário, do financeiro ao paciente — tudo integrado em uma plataforma segura, moderna e fácil de usar.
           </p>
 
-          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2rem' }}>
-            <button
-              onClick={onLogin}
-              {...hh1}
-              style={{
-                padding: '0.875rem 2rem', borderRadius: 10, border: 'none',
-                background: h1 ? '#2563eb' : 'linear-gradient(90deg,#3b82f6,#6366f1)',
-                color: THEME.white, fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer',
-                boxShadow: h1 ? '0 8px 24px rgba(59,130,246,0.45)' : '0 4px 14px rgba(59,130,246,0.3)',
-                transform: h1 ? 'translateY(-2px)' : 'none',
-                transition: 'all 0.2s',
-                display: 'flex', alignItems: 'center', gap: '0.5rem',
-              }}
-            >
+          <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
+            <motion.button onClick={onLogin} whileHover={{ scale: 1.03, y: -2 }} whileTap={{ scale: 0.97 }}
+              style={{ padding: '0.9rem 2rem', borderRadius: 11, border: 'none', background: 'linear-gradient(135deg,#3b82f6,#4f46e5)', color: '#fff', fontWeight: 700, fontSize: '0.95rem', cursor: 'pointer', boxShadow: '0 6px 20px rgba(59,130,246,0.4)', display: 'flex', alignItems: 'center', gap: '0.5rem', fontFamily: 'inherit' }}>
               Acessar o sistema <ArrowRight size={16} />
-            </button>
-            <a
-              href="#features"
-              {...hh2}
-              style={{
-                padding: '0.875rem 2rem', borderRadius: 10,
-                border: `1px solid ${h2 ? '#475569' : '#334155'}`,
-                background: h2 ? '#1e293b' : 'transparent',
-                color: THEME.white, fontWeight: 600, fontSize: '0.95rem',
-                textDecoration: 'none', display: 'inline-flex', alignItems: 'center',
-                transition: 'all 0.2s',
-              }}
-            >
-              Ver funcionalidades
-            </a>
+            </motion.button>
+            <motion.a href="#como-funciona" whileHover={{ scale: 1.02 }}
+              style={{ padding: '0.9rem 2rem', borderRadius: 11, border: '1px solid rgba(255,255,255,0.1)', background: 'rgba(255,255,255,0.05)', color: '#e2e8f0', fontWeight: 600, fontSize: '0.95rem', textDecoration: 'none', display: 'inline-flex', alignItems: 'center', backdropFilter: 'blur(8px)', fontFamily: 'inherit' }}>
+              Ver como funciona
+            </motion.a>
           </div>
 
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem' }}>
-            {['Agenda inteligente', 'Prontuários digitais', 'Gestão financeira'].map((f) => (
-              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', color: '#94a3b8', fontSize: '0.85rem', fontWeight: 500 }}>
-                <CheckCircle2 size={16} color="#10b981" />
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
+            {['Agenda inteligente', 'Prontuários criptografados', 'Financeiro automático'].map((f) => (
+              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#475569', fontSize: '0.84rem', fontWeight: 500 }}>
+                <CheckCircle2 size={15} color="#22d3ee" />
                 {f}
               </span>
             ))}
           </div>
         </motion.div>
 
+        {/* Image */}
         {!mobile && (
-          <motion.div
-            style={{ flex: 1, zIndex: 1 }}
-            initial={{ opacity: 0, x: 24 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ duration: 0.5, delay: 0.15 }}
-          >
-            <div style={{
-              borderRadius: 18, overflow: 'hidden',
-              boxShadow: '0 32px 64px rgba(0,0,0,0.5), 0 0 0 1px rgba(255,255,255,0.07)',
-              transform: 'rotate(1.5deg)',
-              border: '1px solid rgba(255,255,255,0.08)',
-            }}>
+          <motion.div style={{ flex: 1 }} initial={{ opacity: 0, x: 30 }} animate={{ opacity: 1, x: 0 }} transition={{ duration: 0.6, delay: 0.2 }}>
+            <motion.div animate={{ y: [0, -8, 0] }} transition={{ duration: 5, repeat: Infinity, ease: 'easeInOut' }}
+              style={{ borderRadius: 20, overflow: 'hidden', boxShadow: '0 40px 80px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.06)', transform: 'rotate(1deg)', border: '1px solid rgba(255,255,255,0.06)' }}>
               <img src={heroImg} alt="FiaesPsychology dashboard" style={{ width: '100%', display: 'block' }} />
-            </div>
+            </motion.div>
           </motion.div>
         )}
       </div>
@@ -248,27 +183,29 @@ function HeroSection({ onLogin }) {
   );
 }
 
+// ── Stats Bar ─────────────────────────────────────────────────────────────────
 function StatsBar() {
   const mobile = useIsMobile();
   return (
-    <section style={{ background: '#0a1628', borderTop: '1px solid #1e293b', borderBottom: '1px solid #1e293b' }}>
+    <section style={{ background: '#070e1d', borderTop: '1px solid rgba(255,255,255,0.05)', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem' }}>
         <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr 1fr' : 'repeat(4,1fr)' }}>
-          {STATS.map((s, i) => (
-            <motion.div
-              key={s.label}
-              whileInView={{ opacity: 1, y: 0 }}
-              initial={{ opacity: 0, y: 12 }}
-              transition={{ duration: 0.35, delay: i * 0.07 }}
-              viewport={{ once: true }}
+          {STATS.map(({ value, label, Icon, color }, i) => (
+            <motion.div key={label}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 12 }}
+              transition={{ duration: 0.35, delay: i * 0.08 }} viewport={{ once: true }}
               style={{
                 padding: '1.75rem 1.5rem', textAlign: 'center',
-                borderRight: (!mobile && i < 3) ? '1px solid #1e293b' : 'none',
-                borderBottom: mobile && i < 2 ? '1px solid #1e293b' : 'none',
+                borderRight: (!mobile && i < 3) ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                borderBottom: mobile && i < 2 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '0.5rem',
               }}
             >
-              <p style={{ fontSize: 'clamp(1.6rem,3vw,2rem)', fontWeight: 800, background: 'linear-gradient(90deg,#3b82f6,#6366f1)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: '0 0 0.25rem' }}>{s.value}</p>
-              <p style={{ color: '#64748b', fontSize: '0.82rem', fontWeight: 500, margin: 0, textTransform: 'uppercase', letterSpacing: '0.05em' }}>{s.label}</p>
+              <div style={{ width: 40, height: 40, borderRadius: 10, background: color + '18', border: `1px solid ${color}30`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '0.25rem' }}>
+                <Icon size={18} color={color} />
+              </div>
+              <p style={{ fontSize: 'clamp(1.5rem,2.5vw,1.9rem)', fontWeight: 900, background: 'linear-gradient(90deg,#60a5fa,#a78bfa)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text', margin: 0, letterSpacing: '-0.02em' }}>{value}</p>
+              <p style={{ color: '#475569', fontSize: '0.78rem', fontWeight: 600, margin: 0, textTransform: 'uppercase', letterSpacing: '0.06em' }}>{label}</p>
             </motion.div>
           ))}
         </div>
@@ -277,209 +214,250 @@ function StatsBar() {
   );
 }
 
-function FeatureCard({ Icon, color, title, desc }) {
-  const [h, handlers] = useHover();
+// ── Como Funciona ─────────────────────────────────────────────────────────────
+function HowItWorks() {
+  const mobile = useIsMobile();
   return (
-    <motion.div
-      {...handlers}
-      whileInView={{ opacity: 1, y: 0 }}
-      initial={{ opacity: 0, y: 16 }}
-      transition={{ duration: 0.3 }}
-      viewport={{ once: true }}
-      style={{
-        background: THEME.white,
-        borderRadius: 14,
-        padding: '1.5rem',
-        border: `1px solid ${h ? color + '55' : THEME.border}`,
-        boxShadow: h ? `0 12px 32px ${color}22` : '0 1px 3px rgba(0,0,0,0.08)',
-        transform: h ? 'translateY(-4px)' : 'none',
-        transition: 'all 0.22s ease',
-        cursor: 'default',
-      }}
-    >
-      <div style={{ width: 48, height: 48, borderRadius: 12, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1rem' }}>
-        <Icon size={22} color={color} />
+    <section id="como-funciona" style={{ background: '#fff', padding: mobile ? '4rem 1.5rem' : '6.5rem 1.5rem' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto' }}>
+        <motion.div style={{ textAlign: 'center', marginBottom: '4rem' }}
+          whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.4 }} viewport={{ once: true }}>
+          <span style={{ display: 'inline-block', background: '#eff6ff', color: '#2563eb', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 20, marginBottom: '1.1rem', border: '1px solid #bfdbfe' }}>
+            Como funciona
+          </span>
+          <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>
+            Simples assim em 3 passos
+          </h2>
+          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
+            Configure, gerencie e acompanhe — tudo dentro de uma plataforma unificada.
+          </p>
+        </motion.div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: mobile ? '2rem' : '1.5rem', position: 'relative' }}>
+          {/* Connecting line (desktop only) */}
+          {!mobile && (
+            <div style={{ position: 'absolute', top: 40, left: '16.5%', right: '16.5%', height: 2, background: 'linear-gradient(90deg,#3b82f6,#6366f1,#10b981)', opacity: 0.3, borderRadius: 2, zIndex: 0 }} />
+          )}
+          {STEPS.map(({ Icon, color, step, title, desc }, i) => (
+            <motion.div key={step}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, delay: i * 0.12 }} viewport={{ once: true }}
+              style={{ textAlign: 'center', position: 'relative', zIndex: 1 }}
+            >
+              <div style={{ width: 80, height: 80, borderRadius: '50%', background: `linear-gradient(135deg, ${color}18, ${color}08)`, border: `2px solid ${color}40`, display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem', position: 'relative', boxShadow: `0 8px 24px ${color}20` }}>
+                <Icon size={30} color={color} />
+                <span style={{ position: 'absolute', top: -8, right: -8, width: 26, height: 26, borderRadius: '50%', background: color, color: '#fff', fontSize: '0.7rem', fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: `0 4px 10px ${color}50` }}>{step}</span>
+              </div>
+              <h3 style={{ fontSize: '1.05rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.6rem', letterSpacing: '-0.01em' }}>{title}</h3>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.65, margin: 0 }}>{desc}</p>
+            </motion.div>
+          ))}
+        </div>
       </div>
-      <h3 style={{ fontSize: '1rem', fontWeight: 700, color: THEME.dark, margin: '0 0 0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
-      <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.6, margin: 0 }}>{desc}</p>
-    </motion.div>
+    </section>
   );
 }
 
+// ── Features ──────────────────────────────────────────────────────────────────
 function FeaturesSection() {
   const mobile = useIsMobile();
   return (
-    <section id="features" style={{ background: THEME.surface, padding: mobile ? '4rem 1.5rem' : '6rem 1.5rem' }}>
+    <section id="features" style={{ background: '#f8fafc', padding: mobile ? '4rem 1.5rem' : '6.5rem 1.5rem' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <motion.div
-          style={{ textAlign: 'center', marginBottom: '3rem' }}
-          whileInView={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 16 }}
-          transition={{ duration: 0.35 }}
-          viewport={{ once: true }}
-        >
-          <span style={{ display: 'inline-block', background: '#ede9fe', color: '#6d28d9', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0.3rem 0.85rem', borderRadius: 20, marginBottom: '1rem' }}>
+        <motion.div style={{ textAlign: 'center', marginBottom: '3.5rem' }}
+          whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.4 }} viewport={{ once: true }}>
+          <span style={{ display: 'inline-block', background: '#f5f3ff', color: '#6d28d9', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 20, marginBottom: '1.1rem', border: '1px solid #ddd6fe' }}>
             Funcionalidades
           </span>
-          <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.25rem)', fontWeight: 800, color: THEME.dark, margin: '0 0 0.75rem', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>
             Tudo que sua clínica precisa
           </h2>
-          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 520, lineHeight: 1.6 }}>
-            Módulos integrados para cobrir cada aspecto da gestão clínica, do administrativo ao clínico.
+          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
+            Módulos integrados para cobrir cada aspecto da gestão, do administrativo ao clínico.
           </p>
         </motion.div>
+
         <div style={{ display: 'grid', gridTemplateColumns: mobile ? '1fr' : 'repeat(3,1fr)', gap: '1rem' }}>
-          {FEATURES.map((f) => <FeatureCard key={f.title} {...f} />)}
+          {FEATURES.map(({ Icon, color, bg, title, desc }, i) => (
+            <motion.div key={title}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 16 }}
+              transition={{ duration: 0.35, delay: (i % 3) * 0.08 }} viewport={{ once: true }}
+              whileHover={{ y: -4, boxShadow: `0 16px 40px ${color}20` }}
+              style={{ background: '#fff', borderRadius: 16, padding: '1.6rem', border: '1px solid #f1f5f9', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', transition: 'border-color 0.2s', cursor: 'default' }}
+            >
+              <div style={{ width: 50, height: 50, borderRadius: 13, background: bg, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.1rem', border: `1px solid ${color}20` }}>
+                <Icon size={22} color={color} />
+              </div>
+              <h3 style={{ fontSize: '0.975rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
+              <p style={{ fontSize: '0.85rem', color: '#64748b', lineHeight: 1.65, margin: 0 }}>{desc}</p>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
-function ProfileCard({ Icon, title, color, desc, items }) {
-  const [h, handlers] = useHover();
-  return (
-    <motion.div
-      {...handlers}
-      whileInView={{ opacity: 1, y: 0 }}
-      initial={{ opacity: 0, y: 16 }}
-      transition={{ duration: 0.35 }}
-      viewport={{ once: true }}
-      style={{
-        background: h ? '#0f1f35' : '#0d1b2e',
-        borderRadius: 16,
-        padding: '2rem',
-        border: `1px solid ${h ? color + '55' : '#1e293b'}`,
-        borderTop: `4px solid ${color}`,
-        boxShadow: h ? `0 12px 32px ${color}22` : 'none',
-        transform: h ? 'translateY(-4px)' : 'none',
-        transition: 'all 0.22s ease',
-        flex: 1,
-      }}
-    >
-      <div style={{ width: 52, height: 52, borderRadius: 14, background: color + '22', display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
-        <Icon size={24} color={color} />
-      </div>
-      <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: THEME.white, margin: '0 0 0.5rem', letterSpacing: '-0.01em' }}>{title}</h3>
-      <p style={{ fontSize: '0.875rem', color: '#94a3b8', lineHeight: 1.6, margin: '0 0 1.25rem' }}>{desc}</p>
-      <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
-        {items.map((item) => (
-          <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#94a3b8' }}>
-            <CheckCircle2 size={15} color={color} style={{ flexShrink: 0, opacity: 0.8 }} />
-            {item}
-          </li>
-        ))}
-      </ul>
-    </motion.div>
-  );
-}
-
+// ── Profiles ──────────────────────────────────────────────────────────────────
 function ProfilesSection() {
   const mobile = useIsMobile();
   return (
-    <section id="perfis" style={{ background: '#0a1628', padding: mobile ? '4rem 1.5rem' : '6rem 1.5rem', borderTop: '1px solid #1e293b' }}>
+    <section id="perfis" style={{ background: 'linear-gradient(160deg,#060d1e 0%,#0c1932 50%,#0f1f3a 100%)', padding: mobile ? '4rem 1.5rem' : '6.5rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <motion.div
-          style={{ textAlign: 'center', marginBottom: '3rem' }}
-          whileInView={{ opacity: 1, y: 0 }}
-          initial={{ opacity: 0, y: 16 }}
-          transition={{ duration: 0.35 }}
-          viewport={{ once: true }}
-        >
-          <span style={{ display: 'inline-block', background: 'rgba(59,130,246,0.15)', color: '#60a5fa', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase', padding: '0.3rem 0.85rem', borderRadius: 20, marginBottom: '1rem', border: '1px solid rgba(59,130,246,0.25)' }}>
+        <motion.div style={{ textAlign: 'center', marginBottom: '3.5rem' }}
+          whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 16 }}
+          transition={{ duration: 0.4 }} viewport={{ once: true }}>
+          <span style={{ display: 'inline-block', background: 'rgba(59,130,246,0.12)', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 20, marginBottom: '1.1rem', border: '1px solid rgba(59,130,246,0.2)' }}>
             Perfis de acesso
           </span>
-          <h2 style={{ fontSize: 'clamp(1.5rem,3vw,2.25rem)', fontWeight: 800, color: THEME.white, margin: '0 0 0.75rem', letterSpacing: '-0.02em' }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, color: '#fff', margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>
             Um sistema, três experiências
           </h2>
-          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 520, lineHeight: 1.6 }}>
-            Cada perfil tem seu próprio painel personalizado, com acesso apenas ao que é relevante para seu papel.
+          <p style={{ color: '#475569', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
+            Cada perfil tem painel personalizado com acesso apenas ao que é relevante para seu papel.
           </p>
         </motion.div>
-        <div style={{ display: 'flex', gap: '1rem', flexDirection: mobile ? 'column' : 'row' }}>
-          {PROFILES.map((p) => <ProfileCard key={p.title} {...p} />)}
+
+        <div style={{ display: 'flex', gap: '1.25rem', flexDirection: mobile ? 'column' : 'row' }}>
+          {PROFILES.map(({ Icon, title, color, desc, items }, i) => (
+            <motion.div key={title}
+              whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }}
+              transition={{ duration: 0.4, delay: i * 0.1 }} viewport={{ once: true }}
+              whileHover={{ y: -6, boxShadow: `0 20px 50px ${color}20` }}
+              style={{ flex: 1, background: 'rgba(255,255,255,0.03)', borderRadius: 18, padding: '2rem', border: '1px solid rgba(255,255,255,0.06)', borderTop: `3px solid ${color}`, transition: 'all 0.25s', cursor: 'default' }}
+            >
+              <div style={{ width: 54, height: 54, borderRadius: 15, background: color + '18', border: `1px solid ${color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', boxShadow: `0 8px 20px ${color}20` }}>
+                <Icon size={25} color={color} />
+              </div>
+              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>{title}</h3>
+              <p style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.65, margin: '0 0 1.5rem' }}>{desc}</p>
+              <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                {items.map((item) => (
+                  <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.84rem', color: '#64748b' }}>
+                    <CheckCircle2 size={14} color={color} style={{ flexShrink: 0 }} />
+                    {item}
+                  </li>
+                ))}
+              </ul>
+            </motion.div>
+          ))}
         </div>
       </div>
     </section>
   );
 }
 
+// ── Testimonial bar ──────────────────────────────────────────────────────────
+function TrustSection() {
+  const mobile = useIsMobile();
+  const TRUST = [
+    { Icon: Shield, text: 'Dados com criptografia AES-256', color: '#10b981' },
+    { Icon: Lock, text: 'Autenticação segura via Supabase', color: '#3b82f6' },
+    { Icon: Bell, text: 'Notificações em tempo real', color: '#6366f1' },
+    { Icon: Star, text: 'Interface moderna e intuitiva', color: '#f59e0b' },
+  ];
+  return (
+    <section style={{ background: '#fff', padding: mobile ? '2.5rem 1.5rem' : '3.5rem 1.5rem', borderTop: '1px solid #f1f5f9' }}>
+      <div style={{ maxWidth: 1100, margin: '0 auto', display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '2rem' }}>
+        {TRUST.map(({ Icon, text, color }) => (
+          <motion.div key={text}
+            whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 10 }}
+            transition={{ duration: 0.3 }} viewport={{ once: true }}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}
+          >
+            <div style={{ width: 34, height: 34, borderRadius: 9, background: color + '15', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <Icon size={16} color={color} />
+            </div>
+            <span style={{ color: '#475569', fontSize: '0.875rem', fontWeight: 600 }}>{text}</span>
+          </motion.div>
+        ))}
+      </div>
+    </section>
+  );
+}
+
+// ── CTA ───────────────────────────────────────────────────────────────────────
 function CTASection({ onLogin }) {
   const mobile = useIsMobile();
-  const [h, handlers] = useHover();
   return (
-    <section style={{
-      background: 'linear-gradient(135deg, #1e40af 0%, #4338ca 50%, #4f46e5 100%)',
-      padding: mobile ? '4rem 1.5rem' : '6rem 1.5rem',
-      textAlign: 'center',
-      position: 'relative',
-      overflow: 'hidden',
-    }}>
-      <div style={{ position: 'absolute', inset: 0, background: 'radial-gradient(ellipse 60% 80% at 50% 100%, rgba(255,255,255,0.07) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <motion.div
-        style={{ maxWidth: 640, margin: '0 auto', position: 'relative', zIndex: 1 }}
-        whileInView={{ opacity: 1, y: 0 }}
-        initial={{ opacity: 0, y: 20 }}
-        transition={{ duration: 0.4 }}
-        viewport={{ once: true }}
-      >
-        <h2 style={{ fontSize: 'clamp(1.75rem,4vw,2.5rem)', fontWeight: 800, color: THEME.white, margin: '0 0 1rem', letterSpacing: '-0.02em', lineHeight: 1.2 }}>
+    <section style={{ background: 'linear-gradient(135deg,#1d4ed8 0%,#4338ca 50%,#5b21b6 100%)', padding: mobile ? '4.5rem 1.5rem' : '7rem 1.5rem', textAlign: 'center', position: 'relative', overflow: 'hidden' }}>
+      <motion.div animate={{ scale: [1, 1.4, 1], opacity: [0.2, 0.4, 0.2] }} transition={{ duration: 8, repeat: Infinity }}
+        style={{ position: 'absolute', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.1) 0%,transparent 65%)', top: -150, left: -150, pointerEvents: 'none' }} />
+      <motion.div animate={{ scale: [1, 1.3, 1], opacity: [0.15, 0.35, 0.15] }} transition={{ duration: 10, repeat: Infinity, delay: 3 }}
+        style={{ position: 'absolute', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle,rgba(255,255,255,0.08) 0%,transparent 65%)', bottom: -100, right: -100, pointerEvents: 'none' }} />
+
+      <motion.div style={{ maxWidth: 680, margin: '0 auto', position: 'relative', zIndex: 1 }}
+        whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 24 }}
+        transition={{ duration: 0.5 }} viewport={{ once: true }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.5rem', background: 'rgba(255,255,255,0.12)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 20, padding: '0.35rem 1rem', marginBottom: '1.75rem' }}>
+          <BrainCircuit size={15} color="#fff" />
+          <span style={{ color: '#c7d2fe', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>FiaesPsychology</span>
+        </div>
+        <h2 style={{ fontSize: 'clamp(1.8rem,4.5vw,3rem)', fontWeight: 900, color: '#fff', margin: '0 0 1.1rem', letterSpacing: '-0.03em', lineHeight: 1.15 }}>
           Pronto para digitalizar sua clínica?
         </h2>
-        <p style={{ color: '#bfdbfe', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 2.25rem' }}>
+        <p style={{ color: '#bfdbfe', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 2.5rem' }}>
           Acesse agora e gerencie tudo em um só lugar — agenda, pacientes, prontuários e financeiro integrados.
         </p>
-        <button
-          onClick={onLogin}
-          {...handlers}
-          style={{
-            padding: '1rem 2.5rem', borderRadius: 12, border: 'none',
-            background: h ? '#f1f5f9' : THEME.white,
-            color: '#1e40af', fontWeight: 800, fontSize: '1rem', cursor: 'pointer',
-            boxShadow: h ? '0 8px 28px rgba(0,0,0,0.25)' : '0 4px 14px rgba(0,0,0,0.15)',
-            transform: h ? 'translateY(-2px) scale(1.02)' : 'none',
-            transition: 'all 0.2s',
-            letterSpacing: '-0.01em',
-            display: 'inline-flex', alignItems: 'center', gap: '0.5rem',
-          }}
-        >
+        <motion.button onClick={onLogin}
+          whileHover={{ scale: 1.04, y: -3 }} whileTap={{ scale: 0.97 }}
+          style={{ padding: '1rem 2.75rem', borderRadius: 13, border: 'none', background: '#fff', color: '#1d4ed8', fontWeight: 800, fontSize: '1.05rem', cursor: 'pointer', boxShadow: '0 8px 32px rgba(0,0,0,0.2)', display: 'inline-flex', alignItems: 'center', gap: '0.55rem', fontFamily: 'inherit', letterSpacing: '-0.01em', transition: 'all 0.2s' }}>
           Acessar o sistema agora <ArrowRight size={18} />
-        </button>
+        </motion.button>
       </motion.div>
     </section>
   );
 }
 
+// ── Footer ────────────────────────────────────────────────────────────────────
 function Footer({ onLogin }) {
   const mobile = useIsMobile();
   return (
-    <footer style={{ background: '#060e1a', borderTop: '1px solid #1e293b', padding: '2.5rem 1.5rem' }}>
+    <footer style={{ background: '#040a14', borderTop: '1px solid rgba(255,255,255,0.04)', padding: '3rem 1.5rem 2rem' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: mobile ? 'column' : 'row', gap: '1.5rem', marginBottom: '1.75rem' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-            <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <BrainCircuit size={16} color="#fff" />
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexDirection: mobile ? 'column' : 'row', gap: '2rem', marginBottom: '2.5rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem', marginBottom: '0.75rem' }}>
+              <div style={{ width: 34, height: 34, borderRadius: 9, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <BrainCircuit size={17} color="#fff" />
+              </div>
+              <span style={{ color: '#fff', fontWeight: 800, fontSize: '0.95rem', letterSpacing: '-0.02em' }}>FiaesPsychology</span>
+            </div>
+            <p style={{ color: '#334155', fontSize: '0.82rem', margin: 0, maxWidth: 280, lineHeight: 1.6 }}>
+              Sistema completo de gestão para clínicas de psicologia. Seguro, moderno e integrado.
+            </p>
+          </div>
+
+          <div style={{ display: 'flex', gap: '3rem', flexWrap: 'wrap' }}>
+            <div>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 0.75rem' }}>Navegação</p>
+              {['Como funciona', 'Funcionalidades', 'Perfis'].map((l) => (
+                <a key={l} href={`#${l === 'Como funciona' ? 'como-funciona' : l === 'Funcionalidades' ? 'features' : 'perfis'}`}
+                  style={{ display: 'block', color: '#334155', fontSize: '0.84rem', textDecoration: 'none', marginBottom: '0.45rem', fontWeight: 500 }}>{l}</a>
+              ))}
             </div>
             <div>
-              <p style={{ color: THEME.white, fontWeight: 800, fontSize: '0.95rem', margin: 0 }}>FiaesPsychology</p>
-              <p style={{ color: '#475569', fontSize: '0.78rem', margin: 0 }}>Gestão clínica inteligente</p>
+              <p style={{ color: '#64748b', fontSize: '0.75rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.07em', margin: '0 0 0.75rem' }}>Acesso</p>
+              <button onClick={onLogin} style={{ display: 'block', color: '#3b82f6', fontSize: '0.84rem', background: 'none', border: 'none', cursor: 'pointer', padding: 0, fontWeight: 600, marginBottom: '0.45rem', fontFamily: 'inherit', textAlign: 'left' }}>
+                Entrar na plataforma
+              </button>
+              <span style={{ display: 'block', color: '#334155', fontSize: '0.84rem', fontWeight: 500 }}>Portal do paciente</span>
             </div>
           </div>
-          <div style={{ display: 'flex', gap: '1.5rem', alignItems: 'center' }}>
-            <a href="#features" style={{ color: '#475569', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>Funcionalidades</a>
-            <a href="#perfis" style={{ color: '#475569', fontSize: '0.85rem', textDecoration: 'none', fontWeight: 500 }}>Perfis</a>
-            <button onClick={onLogin} style={{ background: 'none', border: '1px solid #334155', borderRadius: 6, color: '#94a3b8', padding: '0.4rem 1rem', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 600 }}>Entrar</button>
-          </div>
         </div>
-        <div style={{ borderTop: '1px solid #1e293b', paddingTop: '1.25rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: mobile ? 'column' : 'row', gap: '0.5rem' }}>
-          <p style={{ color: '#334155', fontSize: '0.8rem', margin: 0 }}>© 2025 FiaesPsychology — thdev07. Todos os direitos reservados.</p>
-          <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>Construído com React + Supabase</p>
+
+        <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: mobile ? 'column' : 'row', gap: '0.5rem' }}>
+          <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>© {new Date().getFullYear()} FiaesPsychology — thdev07. Todos os direitos reservados.</p>
+          <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>Construído com React + Supabase + Node.js</p>
         </div>
       </div>
     </footer>
   );
 }
 
+// ── Root ──────────────────────────────────────────────────────────────────────
 export default function LandingPage() {
   const navigate = useNavigate();
   const handleLogin = () => navigate('/login');
@@ -490,11 +468,13 @@ export default function LandingPage() {
   }, []);
 
   return (
-    <div style={{ width: '100%', textAlign: 'left', fontFamily: "'Inter', system-ui, sans-serif", overflowX: 'hidden' }}>
+    <div style={{ width: '100%', fontFamily: "'Inter', system-ui, sans-serif", overflowX: 'hidden' }}>
       <Navbar onLogin={handleLogin} />
       <HeroSection onLogin={handleLogin} />
       <StatsBar />
+      <HowItWorks />
       <FeaturesSection />
+      <TrustSection />
       <ProfilesSection />
       <CTASection onLogin={handleLogin} />
       <Footer onLogin={handleLogin} />
