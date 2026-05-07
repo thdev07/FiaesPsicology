@@ -1,13 +1,17 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Receipt, TrendingUp, AlertCircle, FileStack } from 'lucide-react';
 import { api } from '../../services/api';
+
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
 function fmt(value) {
   return Number(value).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
 }
 
 const PGTO_COLORS = {
-  pago:      { background: '#dcfce7', color: '#16a34a' },
-  pendente:  { background: '#fef9c3', color: '#ca8a04' },
+  pago:      { background: '#dcfce7', color: '#166534' },
+  pendente:  { background: '#fef9c3', color: '#854d0e' },
   cancelado: { background: '#f1f5f9', color: '#64748b' },
 };
 
@@ -23,30 +27,40 @@ export default function PatientDocuments() {
       .finally(() => setLoading(false));
   }, []);
 
-  const totalPago = debts.filter((d) => d.status_pagamento === 'pago').reduce((s, d) => s + Number(d.valor), 0);
-  const totalPendente = debts.filter((d) => d.status_pagamento === 'pendente').reduce((s, d) => s + Number(d.valor), 0);
+  const totalPago = debts.filter((d) => d.status_pagamento === 'pago').reduce((sum, d) => sum + Number(d.valor), 0);
+  const totalPendente = debts.filter((d) => d.status_pagamento === 'pendente').reduce((sum, d) => sum + Number(d.valor), 0);
 
   return (
-    <div>
-      <h1 style={s.title}>Meus documentos</h1>
-
-      {/* Resumo financeiro */}
-      <div style={s.cards}>
-        <div style={s.card}>
-          <p style={s.cardLabel}>Total pago</p>
-          <p style={{ ...s.cardValue, color: '#15803d' }}>{fmt(totalPago)}</p>
-        </div>
-        <div style={{ ...s.card, borderLeftColor: '#f59e0b' }}>
-          <p style={s.cardLabel}>Valor em aberto</p>
-          <p style={{ ...s.cardValue, color: '#b45309' }}>{fmt(totalPendente)}</p>
-        </div>
-        <div style={{ ...s.card, borderLeftColor: '#64748b' }}>
-          <p style={s.cardLabel}>Total de cobranças</p>
-          <p style={s.cardValue}>{debts.length}</p>
-        </div>
+    <motion.div {...pageAnim}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
+        <Receipt size={22} color="#3b82f6" />
+        <h1 style={s.title}>Meus documentos</h1>
       </div>
 
-      {/* Extrato de cobranças */}
+      <div style={s.cards}>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.card, borderLeft: '4px solid #16a34a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <TrendingUp size={14} color="#16a34a" />
+            <p style={s.cardLabel}>Total pago</p>
+          </div>
+          <p style={{ ...s.cardValue, color: '#15803d' }}>{fmt(totalPago)}</p>
+        </motion.div>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.card, borderLeft: '4px solid #f59e0b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <AlertCircle size={14} color="#f59e0b" />
+            <p style={s.cardLabel}>Valor em aberto</p>
+          </div>
+          <p style={{ ...s.cardValue, color: '#b45309' }}>{fmt(totalPendente)}</p>
+        </motion.div>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.card, borderLeft: '4px solid #64748b' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+            <FileStack size={14} color="#64748b" />
+            <p style={s.cardLabel}>Total de cobranças</p>
+          </div>
+          <p style={s.cardValue}>{debts.length}</p>
+        </motion.div>
+      </div>
+
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Extrato de cobranças</h2>
         {error && <p style={s.error}>{error}</p>}
@@ -88,33 +102,33 @@ export default function PatientDocuments() {
         )}
       </div>
 
-      {/* Documentos médicos — placeholder para fase futura */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Documentos médicos</h2>
         <div style={s.emptyBox}>
+          <Receipt size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
           <p style={s.emptyText}>Laudos e recibos liberados pelo psicólogo aparecerão aqui.</p>
           <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>Funcionalidade disponível em breve.</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 const s = {
-  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 1.5rem' },
+  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
   cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '2rem' },
-  card: { background: '#fff', borderRadius: '10px', padding: '1.25rem', boxShadow: '0 1px 4px rgba(0,0,0,0.07)', borderLeft: '4px solid #3b82f6' },
-  cardLabel: { fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', margin: '0 0 0.5rem' },
-  cardValue: { fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+  card: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
+  cardLabel: { fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', margin: 0, letterSpacing: '0.03em' },
+  cardValue: { fontSize: '1.35rem', fontWeight: 700, color: '#1e293b', margin: 0 },
   section: { marginBottom: '2rem' },
-  sectionTitle: { fontSize: '1rem', fontWeight: 700, color: '#475569', marginBottom: '0.75rem' },
-  error: { color: '#e53e3e', fontSize: '0.875rem', margin: '0.5rem 0' },
+  sectionTitle: { fontSize: '0.95rem', fontWeight: 700, color: '#475569', marginBottom: '0.75rem' },
+  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   tableWrap: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' },
+  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
-  td: { padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#334155' },
-  badge: { padding: '0.25rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600 },
-  emptyBox: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '2rem', textAlign: 'center' },
+  td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
+  emptyBox: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   emptyText: { color: '#475569', margin: '0 0 0.5rem', fontWeight: 500 },
 };

@@ -37,17 +37,19 @@ export const saveCalendarEventIdService = (id, eventId) =>
   supabase.from('appointments').update({ calendar_event_id: eventId }).eq('id', id);
 
 export async function createAppointmentService(data) {
-  // Valida conflito de sala antes de inserir
-  const { data: conflict } = await supabase
-    .from('appointments')
-    .select('id')
-    .eq('sala_id', data.sala_id)
-    .eq('data', data.data)
-    .eq('hora', data.hora)
-    .neq('status', 'cancelado')
-    .single();
+  // Valida conflito de sala apenas quando sala está definida
+  if (data.sala_id) {
+    const { data: conflict } = await supabase
+      .from('appointments')
+      .select('id')
+      .eq('sala_id', data.sala_id)
+      .eq('data', data.data)
+      .eq('hora', data.hora)
+      .neq('status', 'cancelado')
+      .single();
 
-  if (conflict) throw { status: 409, message: 'Sala já ocupada neste horário' };
+    if (conflict) throw { status: 409, message: 'Sala já ocupada neste horário' };
+  }
 
   return supabase.from('appointments').insert(data).select().single();
 }

@@ -2,6 +2,9 @@ import supabase from '../../db.js';
 
 export const listUsersService = () => supabase.from('users').select('*').order('created_at', { ascending: false });
 
+export const listPsychologistsService = () =>
+  supabase.from('users').select('id, nome').eq('role', 'psicologo').order('nome');
+
 export const getUserByIdService = (id) => supabase.from('users').select('*').eq('id', id).single();
 
 export async function createUserService({ nome, email, password, role, registro_profissional }) {

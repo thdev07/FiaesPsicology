@@ -75,28 +75,39 @@ export async function autoCreateFromAppointmentService(appointmentId) {
 
   if (existing) return;
 
-  // Busca dados do agendamento para definir categoria com coparticipação
+  // Busca dados do agendamento para categoria e valor
   const { data: appt } = await supabase
     .from('appointments')
-    .select('tipo, patients(plano_id, insurance_plans(nome, coparticipacao_percentual))')
+    .select('tipo, psicologo_id, users(valor_consulta_particular), patients(plano_id, insurance_plans(nome, coparticipacao_percentual, valor_consulta))')
     .eq('id', appointmentId)
     .single();
 
   let categoria = 'Consulta Particular';
+  let valor = 0;
+
   if (appt?.tipo === 'convenio') {
     const plano = appt.patients?.insurance_plans;
     categoria = plano
       ? `Consulta Convênio - ${plano.nome} (${plano.coparticipacao_percentual}% copart.)`
       : 'Consulta Convênio';
+    valor = Number(plano?.valor_consulta ?? 0);
+  } else {
+    valor = Number(appt?.users?.valor_consulta_particular ?? 0);
   }
 
-  return supabase.from('transactions').insert({
+  const { data: transaction, error } = await supabase.from('transactions').insert({
     consulta_id: appointmentId,
     tipo: 'receita',
     categoria,
-    valor: 0,
+    valor,
     status_pagamento: 'pendente',
   }).select().single();
+
+  if (!error && valor > 0) {
+    await _upsertRepasse(appointmentId, valor);
+  }
+
+  return { data: transaction, error };
 }
 
 export async function getMyDebtsService(userEmail) {

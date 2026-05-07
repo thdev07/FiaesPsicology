@@ -1,5 +1,26 @@
 import { NavLink } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
+import {
+  LayoutDashboard, Users, DoorOpen, CalendarDays, UserCog,
+  DollarSign, Shield, BarChart2, Calendar, FileText,
+  CalendarPlus, Receipt, UserCircle, BrainCircuit,
+} from 'lucide-react';
+
+const ICON_MAP = {
+  Dashboard: LayoutDashboard,
+  Pacientes: Users,
+  Salas: DoorOpen,
+  Agendamentos: CalendarDays,
+  'Usuários': UserCog,
+  Financeiro: DollarSign,
+  'Convênios': Shield,
+  'Relatórios': BarChart2,
+  Agenda: Calendar,
+  'Prontuários': FileText,
+  'Solicitar Consulta': CalendarPlus,
+  Documentos: Receipt,
+  'Meu Perfil': UserCircle,
+};
 
 const MENUS = {
   admin: [
@@ -21,6 +42,7 @@ const MENUS = {
   paciente: [
     { to: '/paciente', label: 'Dashboard', end: true },
     { to: '/paciente/agendamentos', label: 'Agendamentos' },
+    { to: '/paciente/novo-agendamento', label: 'Solicitar Consulta' },
     { to: '/paciente/documentos', label: 'Documentos' },
     { to: '/paciente/perfil', label: 'Meu Perfil' },
   ],
@@ -32,22 +54,39 @@ export default function Sidebar() {
 
   return (
     <aside style={styles.aside}>
-      <div style={styles.logo}>FiaesPsychology</div>
+      <div style={styles.logoArea}>
+        <div style={styles.logoIcon}>
+          <BrainCircuit size={20} color="#fff" />
+        </div>
+        <span style={styles.logoText}>FiaesPsychology</span>
+      </div>
+
       <nav style={styles.nav}>
-        {items.map(({ to, label, end }) => (
-          <NavLink
-            key={to}
-            to={to}
-            end={end}
-            style={({ isActive }) => ({
-              ...styles.link,
-              background: isActive ? '#334155' : 'transparent',
-              color: isActive ? '#fff' : '#94a3b8',
-            })}
-          >
-            {label}
-          </NavLink>
-        ))}
+        {items.map(({ to, label, end }) => {
+          const Icon = ICON_MAP[label] ?? LayoutDashboard;
+          return (
+            <NavLink
+              key={to}
+              to={to}
+              end={end}
+              style={({ isActive }) => ({
+                ...styles.link,
+                background: isActive ? '#2563eb' : 'transparent',
+                color: isActive ? '#fff' : '#94a3b8',
+              })}
+            >
+              {({ isActive }) => (
+                <>
+                  <Icon
+                    size={16}
+                    style={{ flexShrink: 0, color: isActive ? '#fff' : '#64748b' }}
+                  />
+                  <span style={{ fontSize: '0.875rem' }}>{label}</span>
+                </>
+              )}
+            </NavLink>
+          );
+        })}
       </nav>
     </aside>
   );
@@ -55,32 +94,51 @@ export default function Sidebar() {
 
 const styles = {
   aside: {
-    width: 220,
+    width: 224,
     background: '#0f172a',
     display: 'flex',
     flexDirection: 'column',
     flexShrink: 0,
+    borderRight: '1px solid #1e293b',
   },
-  logo: {
-    padding: '1.25rem 1rem',
-    fontSize: '1.1rem',
+  logoArea: {
+    padding: '1.1rem 1rem',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    borderBottom: '1px solid #1e293b',
+  },
+  logoIcon: {
+    width: 32,
+    height: 32,
+    borderRadius: 8,
+    background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  logoText: {
+    fontSize: '0.95rem',
     fontWeight: 700,
     color: '#fff',
-    borderBottom: '1px solid #1e293b',
-    letterSpacing: '0.5px',
+    letterSpacing: '-0.01em',
   },
   nav: {
     display: 'flex',
     flexDirection: 'column',
     padding: '0.75rem 0.5rem',
-    gap: '0.25rem',
+    gap: '0.15rem',
+    flex: 1,
   },
   link: {
-    padding: '0.6rem 0.75rem',
+    padding: '0.55rem 0.75rem',
     borderRadius: '6px',
     textDecoration: 'none',
-    fontSize: '0.9rem',
     fontWeight: 500,
-    transition: 'background 0.15s, color 0.15s',
+    transition: 'all 0.2s ease',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
   },
 };

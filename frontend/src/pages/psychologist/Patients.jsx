@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { Users, Plus, Search, X } from 'lucide-react';
 import { api } from '../../services/api';
 
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { nome: '', cpf: '', email: '', telefone: '', data_nascimento: '', historico_clinico: '', plano_id: '' };
 
 export default function Patients() {
@@ -85,18 +88,27 @@ export default function Patients() {
   if (loading) return <div style={{ padding: 32, color: '#6b7280' }}>Carregando...</div>;
 
   return (
-    <div>
+    <motion.div {...pageAnim}>
       <div style={s.topbar}>
-        <h1 style={s.title}>Meus Pacientes</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <Users size={22} color="#3b82f6" />
+          <h1 style={s.title}>Meus Pacientes</h1>
+        </div>
         <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <input
-            type="text"
-            placeholder="Buscar por nome, email ou CPF..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            style={s.search}
-          />
-          <button onClick={openCreate} style={s.btnPrimary}>+ Novo paciente</button>
+          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+            <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '0.7rem' }} />
+            <input
+              type="text"
+              placeholder="Buscar por nome, email ou CPF..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              style={s.search}
+            />
+          </div>
+          <button onClick={openCreate} style={s.btnPrimary}>
+            <Plus size={15} />
+            Novo paciente
+          </button>
         </div>
       </div>
 
@@ -117,7 +129,7 @@ export default function Patients() {
             <tbody>
               {filtered.map((p) => (
                 <tr key={p.id} style={s.tr}>
-                  <td style={{ ...s.td, fontWeight: 500, color: '#111827' }}>{p.nome}</td>
+                  <td style={{ ...s.td, fontWeight: 600, color: '#111827' }}>{p.nome}</td>
                   <td style={s.td}>{p.email ?? '—'}</td>
                   <td style={s.td}>{p.telefone ?? '—'}</td>
                   <td style={s.td}>{p.insurance_plans?.nome ?? '—'}</td>
@@ -133,8 +145,16 @@ export default function Patients() {
 
       {showModal && (
         <div style={s.overlay}>
-          <div style={s.modal}>
-            <h2 style={s.modalTitle}>{editing ? 'Editar paciente' : 'Novo paciente'}</h2>
+          <motion.div
+            style={s.modal}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div style={s.modalHeader}>
+              <h2 style={s.modalTitle}>{editing ? 'Editar paciente' : 'Novo paciente'}</h2>
+              <button onClick={() => setShowModal(false)} style={s.modalClose}><X size={18} /></button>
+            </div>
             <form onSubmit={handleSave} style={s.form}>
               <label style={s.label}>Nome completo *</label>
               <input
@@ -210,31 +230,33 @@ export default function Patients() {
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 const s = {
   topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-  search: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', width: 260 },
-  error: { color: '#e53e3e', fontSize: '0.875rem', margin: '0.5rem 0' },
-  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
+  search: { padding: '0.5rem 0.75rem 0.5rem 2.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', width: 260, outline: 'none' },
+  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
+  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
-  td: { padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#374151' },
-  btnPrimary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
-  btnSecondary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
-  btnEdit: { padding: '0.3rem 0.75rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
-  modalTitle: { margin: '0 0 1.25rem', fontSize: '1.2rem', fontWeight: 700, color: '#1e293b' },
+  td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
+  btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
+  modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
+  modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },
   form: { display: 'flex', flexDirection: 'column', gap: '0.4rem' },
-  label: { fontSize: '0.85rem', fontWeight: 600, color: '#4a5568', marginTop: '0.4rem' },
-  input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.95rem', width: '100%', boxSizing: 'border-box' },
+  label: { fontSize: '0.825rem', fontWeight: 600, color: '#374151', marginTop: '0.4rem' },
+  input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' },
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' },
 };

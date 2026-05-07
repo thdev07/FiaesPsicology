@@ -1,18 +1,22 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
+
 const STATUS_COLORS = {
-  confirmado: { background: '#dcfce7', color: '#16a34a' },
-  pendente:   { background: '#fef9c3', color: '#ca8a04' },
-  cancelado:  { background: '#fee2e2', color: '#dc2626' },
+  confirmado: { background: '#dcfce7', color: '#166534' },
+  pendente:   { background: '#fef9c3', color: '#854d0e' },
+  cancelado:  { background: '#fee2e2', color: '#991b1b' },
   concluido:  { background: '#ede9fe', color: '#5b21b6' },
 };
 
 const PGTO_COLORS = {
-  pago:      { background: '#dcfce7', color: '#16a34a' },
-  pendente:  { background: '#fef9c3', color: '#ca8a04' },
+  pago:      { background: '#dcfce7', color: '#166534' },
+  pendente:  { background: '#fef9c3', color: '#854d0e' },
   cancelado: { background: '#f1f5f9', color: '#64748b' },
 };
 
@@ -21,8 +25,22 @@ function fmt(value) {
 }
 
 function Badge({ label, colors }) {
+  return <span style={{ ...s.badge, ...colors }}>{label}</span>;
+}
+
+function StatCard({ label, children, color, Icon }) {
   return (
-    <span style={{ ...s.badge, ...colors }}>{label}</span>
+    <motion.div
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
+      style={{ ...s.card, borderLeft: `4px solid ${color}` }}
+    >
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', marginBottom: '0.5rem' }}>
+        <Icon size={14} color={color} />
+        <p style={s.cardLabel}>{label}</p>
+      </div>
+      {children}
+    </motion.div>
   );
 }
 
@@ -53,19 +71,17 @@ export default function PatientDashboard() {
 
   const nextSession = upcoming[0] ?? null;
   const pendingDebts = debts.filter((d) => d.status_pagamento === 'pendente');
-  const totalPending = pendingDebts.reduce((s, d) => s + Number(d.valor), 0);
+  const totalPending = pendingDebts.reduce((sum, d) => sum + Number(d.valor), 0);
 
   if (loading) return <p style={{ color: '#94a3b8' }}>Carregando...</p>;
 
   return (
-    <div>
+    <motion.div {...pageAnim}>
       <h1 style={s.title}>Olá, {user?.user_metadata?.nome ?? 'Paciente'}</h1>
       <p style={s.subtitle}>Acompanhe suas consultas e situação financeira.</p>
 
-      {/* Cards de resumo */}
       <div style={s.cards}>
-        <div style={s.card}>
-          <p style={s.cardLabel}>Próxima sessão</p>
+        <StatCard label="Próxima sessão" color="#3b82f6" Icon={CalendarDays}>
           {nextSession ? (
             <>
               <p style={s.cardValue}>
@@ -76,39 +92,38 @@ export default function PatientDashboard() {
           ) : (
             <p style={s.cardValue}>Nenhuma agendada</p>
           )}
-        </div>
+        </StatCard>
 
-        <div style={s.card}>
-          <p style={s.cardLabel}>Sessões agendadas</p>
+        <StatCard label="Sessões agendadas" color="#8b5cf6" Icon={ListChecks}>
           <p style={s.cardValue}>{upcoming.length}</p>
           <p style={s.cardSub}>nos próximos dias</p>
-        </div>
+        </StatCard>
 
-        <div style={{ ...s.card, borderLeft: totalPending > 0 ? '4px solid #f59e0b' : '4px solid #22c55e' }}>
-          <p style={s.cardLabel}>Débitos pendentes</p>
+        <StatCard label="Débitos pendentes" color={totalPending > 0 ? '#f59e0b' : '#22c55e'} Icon={Wallet}>
           <p style={{ ...s.cardValue, color: totalPending > 0 ? '#b45309' : '#15803d' }}>
             {fmt(totalPending)}
           </p>
           <p style={s.cardSub}>{pendingDebts.length} transaç{pendingDebts.length === 1 ? 'ão' : 'ões'} em aberto</p>
-        </div>
+        </StatCard>
 
-        <div style={s.card}>
-          <p style={s.cardLabel}>Total de consultas</p>
+        <StatCard label="Total de consultas" color="#10b981" Icon={CheckCircle2}>
           <p style={s.cardValue}>{appointments.filter((a) => a.status === 'concluido').length}</p>
           <p style={s.cardSub}>sessões concluídas</p>
-        </div>
+        </StatCard>
       </div>
 
-      {/* Próxima sessão em destaque */}
       {nextSession && (
         <div style={s.section}>
           <h2 style={s.sectionTitle}>Próxima consulta</h2>
           <div style={s.nextCard}>
             <div>
-              <p style={s.nextDate}>
-                {new Date(`${nextSession.data}T00:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
-              </p>
-              <p style={s.nextInfo}>Horário: <strong>{nextSession.hora?.slice(0, 5)}</strong></p>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                <CalendarDays size={16} color="#3b82f6" />
+                <p style={s.nextDate}>
+                  {new Date(`${nextSession.data}T00:00:00`).toLocaleDateString('pt-BR', { weekday: 'long', day: '2-digit', month: 'long', year: 'numeric' })}
+                </p>
+              </div>
+              <p style={s.nextInfo}><Clock size={13} color="#94a3b8" style={{ verticalAlign: 'middle', marginRight: 4 }} />Horário: <strong>{nextSession.hora?.slice(0, 5)}</strong></p>
               <p style={s.nextInfo}>Psicólogo: <strong>{nextSession.users?.nome ?? '—'}</strong></p>
               <p style={s.nextInfo}>Sala: <strong>{nextSession.rooms?.nome ?? '—'}</strong></p>
             </div>
@@ -117,7 +132,6 @@ export default function PatientDashboard() {
         </div>
       )}
 
-      {/* Débitos pendentes */}
       {pendingDebts.length > 0 && (
         <div style={s.section}>
           <h2 style={s.sectionTitle}>Cobranças pendentes</h2>
@@ -152,41 +166,42 @@ export default function PatientDashboard() {
         </div>
       )}
 
-      {/* Ações rápidas */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Acesso rápido</h2>
         <div style={s.actions}>
           <button onClick={() => navigate('/paciente/agendamentos')} style={s.actionBtn}>
+            <CalendarDays size={15} />
             Ver histórico de consultas
           </button>
           <button onClick={() => navigate('/paciente/documentos')} style={s.actionBtn}>
+            <FileText size={15} />
             Meus documentos
           </button>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 }
 
 const s = {
-  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem' },
-  subtitle: { color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.95rem' },
+  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.2rem' },
+  subtitle: { color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' },
   cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' },
-  card: { background: '#fff', borderRadius: '10px', padding: '1.25rem', boxShadow: '0 1px 4px rgba(0,0,0,0.07)', borderLeft: '4px solid #3b82f6' },
-  cardLabel: { fontSize: '0.78rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', margin: '0 0 0.5rem' },
-  cardValue: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.25rem' },
-  cardSub: { fontSize: '0.8rem', color: '#64748b', margin: 0 },
+  card: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
+  cardLabel: { fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', margin: 0, letterSpacing: '0.03em' },
+  cardValue: { fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0 0.15rem' },
+  cardSub: { fontSize: '0.78rem', color: '#64748b', margin: 0 },
   section: { marginBottom: '2rem' },
-  sectionTitle: { fontSize: '1.1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.75rem' },
-  nextCard: { background: '#fff', borderRadius: '10px', padding: '1.5rem', boxShadow: '0 1px 4px rgba(0,0,0,0.07)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
-  nextDate: { fontSize: '1rem', fontWeight: 600, color: '#1e293b', margin: '0 0 0.5rem', textTransform: 'capitalize' },
-  nextInfo: { fontSize: '0.9rem', color: '#475569', margin: '0.15rem 0' },
-  badge: { padding: '0.25rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600 },
+  sectionTitle: { fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
+  nextCard: { background: '#fff', borderRadius: '8px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  nextDate: { fontSize: '0.95rem', fontWeight: 600, color: '#1e293b', margin: 0, textTransform: 'capitalize' },
+  nextInfo: { fontSize: '0.875rem', color: '#475569', margin: '0.2rem 0' },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
   tableWrap: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' },
+  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
-  td: { padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#334155' },
+  td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   actions: { display: 'flex', gap: '1rem', flexWrap: 'wrap' },
-  actionBtn: { padding: '0.65rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#3b82f6', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
+  actionBtn: { padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#3b82f6', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
 };

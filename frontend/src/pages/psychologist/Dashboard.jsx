@@ -1,15 +1,35 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { LayoutDashboard, CalendarDays, Users, Clock, FileText, CheckCircle } from 'lucide-react';
 import { api } from '../../services/api';
 
-const card = (label, value, color) => (
-  <div key={label} style={{ background: '#fff', borderRadius: 8, padding: '20px 24px', boxShadow: '0 1px 3px rgba(0,0,0,.08)', borderLeft: `4px solid ${color}` }}>
-    <div style={{ fontSize: 13, color: '#6b7280', marginBottom: 4 }}>{label}</div>
-    <div style={{ fontSize: 28, fontWeight: 700, color: '#111827' }}>{value}</div>
-  </div>
-);
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
-const STATUS_BADGE = { confirmado: '#22c55e', pendente: '#f59e0b', cancelado: '#ef4444', concluido: '#6366f1' };
+const STATUS_COLORS = {
+  confirmado: { background: '#dcfce7', color: '#166534' },
+  pendente: { background: '#fef9c3', color: '#854d0e' },
+  cancelado: { background: '#fee2e2', color: '#991b1b' },
+  concluido: { background: '#ede9fe', color: '#5b21b6' },
+};
+
+function StatCard({ label, value, color, Icon }) {
+  return (
+    <motion.div
+      whileHover={{ y: -2 }}
+      transition={{ duration: 0.15 }}
+      style={{ background: '#fff', borderRadius: 8, padding: '1.25rem 1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,.08)', cursor: 'default' }}
+    >
+      <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: '0.6rem' }}>
+        <div style={{ width: 38, height: 38, borderRadius: 10, background: color + '18', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <Icon size={17} color={color} />
+        </div>
+      </div>
+      <div style={{ fontSize: 26, fontWeight: 700, color: '#111827', marginBottom: 2 }}>{value}</div>
+      <div style={{ fontSize: 13, color: '#6b7280', fontWeight: 500 }}>{label}</div>
+    </motion.div>
+  );
+}
 
 export default function PsychologistDashboard() {
   const [appointments, setAppointments] = useState([]);
@@ -52,53 +72,61 @@ export default function PsychologistDashboard() {
   if (loading) return <div style={{ padding: 32, color: '#6b7280' }}>Carregando...</div>;
 
   return (
-    <div style={{ padding: 32 }}>
-      <h1 style={{ fontSize: 22, fontWeight: 700, marginBottom: 24, color: '#111827' }}>Meu Painel</h1>
+    <motion.div {...pageAnim}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.5rem' }}>
+        <LayoutDashboard size={22} color="#3b82f6" />
+        <h1 style={{ fontSize: 22, fontWeight: 700, color: '#111827', margin: 0 }}>Meu Painel</h1>
+      </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 32 }}>
-        {card('Sessões hoje', sessionsToday.length, '#3b82f6')}
-        {card('Próximos 7 dias', sessionsWeek.length, '#8b5cf6')}
-        {card('Total de pacientes', uniquePatients, '#10b981')}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: 16, marginBottom: 24 }}>
+        <StatCard label="Sessões hoje" value={sessionsToday.length} color="#3b82f6" Icon={CalendarDays} />
+        <StatCard label="Próximos 7 dias" value={sessionsWeek.length} color="#8b5cf6" Icon={Clock} />
+        <StatCard label="Total de pacientes" value={uniquePatients} color="#10b981" Icon={Users} />
       </div>
 
       <div style={{ background: '#fff', borderRadius: 8, boxShadow: '0 1px 3px rgba(0,0,0,.08)', overflow: 'hidden' }}>
-        <div style={{ padding: '16px 20px', borderBottom: '1px solid #f3f4f6', fontWeight: 600, color: '#374151' }}>
-          Próximas sessões
+        <div style={{ padding: '1rem 1.25rem', borderBottom: '1px solid #f3f4f6', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <CalendarDays size={16} color="#64748b" />
+          <span style={{ fontWeight: 700, color: '#374151', fontSize: '0.95rem' }}>Próximas sessões</span>
         </div>
         {upcoming.length === 0 ? (
-          <div style={{ padding: 24, color: '#9ca3af', textAlign: 'center' }}>Nenhuma sessão agendada.</div>
+          <div style={{ padding: 32, color: '#9ca3af', textAlign: 'center' }}>Nenhuma sessão agendada.</div>
         ) : (
           <table style={{ width: '100%', borderCollapse: 'collapse' }}>
             <thead>
               <tr style={{ background: '#f9fafb' }}>
                 {['Paciente', 'Data', 'Hora', 'Status', ''].map((h) => (
-                  <th key={h} style={{ padding: '10px 16px', textAlign: 'left', fontSize: 12, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase' }}>{h}</th>
+                  <th key={h} style={{ padding: '0.6rem 1rem', textAlign: 'left', fontSize: 11, fontWeight: 600, color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.04em', borderBottom: '1px solid #f0f0f0' }}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {upcoming.map((a) => (
                 <tr key={a.id} style={{ borderTop: '1px solid #f3f4f6' }}>
-                  <td style={{ padding: '12px 16px', color: '#111827' }}>{a.patients?.nome ?? '—'}</td>
-                  <td style={{ padding: '12px 16px', color: '#374151' }}>{a.data}</td>
-                  <td style={{ padding: '12px 16px', color: '#374151' }}>{a.hora?.slice(0, 5)}</td>
-                  <td style={{ padding: '12px 16px' }}>
-                    <span style={{ background: STATUS_BADGE[a.status] + '22', color: STATUS_BADGE[a.status], padding: '2px 10px', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
+                  <td style={{ padding: '0.75rem 1rem', color: '#111827', fontWeight: 500 }}>{a.patients?.nome ?? '—'}</td>
+                  <td style={{ padding: '0.75rem 1rem', color: '#374151', fontSize: '0.875rem' }}>
+                    {new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')}
+                  </td>
+                  <td style={{ padding: '0.75rem 1rem', color: '#374151', fontSize: '0.875rem' }}>{a.hora?.slice(0, 5)}</td>
+                  <td style={{ padding: '0.75rem 1rem' }}>
+                    <span style={{ ...STATUS_COLORS[a.status], padding: '0.2rem 0.6rem', borderRadius: 12, fontSize: 12, fontWeight: 600 }}>
                       {a.status}
                     </span>
                   </td>
-                  <td style={{ padding: '12px 16px', display: 'flex', gap: 8 }}>
+                  <td style={{ padding: '0.75rem 1rem', display: 'flex', gap: 8 }}>
                     <button
                       onClick={() => navigate(`/psicologo/prontuario/${a.id}`)}
-                      style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}
+                      style={{ background: '#3b82f6', color: '#fff', border: 'none', borderRadius: 6, padding: '0.3rem 0.75rem', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                     >
+                      <FileText size={12} />
                       Prontuário
                     </button>
                     {a.status !== 'concluido' && (
                       <button
                         onClick={() => handleConclude(a.id)}
-                        style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '5px 12px', fontSize: 12, cursor: 'pointer' }}
+                        style={{ background: '#6366f1', color: '#fff', border: 'none', borderRadius: 6, padding: '0.3rem 0.75rem', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.3rem' }}
                       >
+                        <CheckCircle size={12} />
                         Concluir
                       </button>
                     )}
@@ -109,6 +137,6 @@ export default function PsychologistDashboard() {
           </table>
         )}
       </div>
-    </div>
+    </motion.div>
   );
 }

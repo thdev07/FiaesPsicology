@@ -1,5 +1,13 @@
 import * as usersService from './users.service.js';
 
+export async function listPsychologists(req, res, next) {
+  try {
+    const { data, error } = await usersService.listPsychologistsService();
+    if (error) throw error;
+    res.json(data);
+  } catch (err) { next(err); }
+}
+
 export async function listUsers(req, res, next) {
   try {
     const { data, error } = await usersService.listUsersService();

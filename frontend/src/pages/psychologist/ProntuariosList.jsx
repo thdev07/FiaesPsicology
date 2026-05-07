@@ -1,11 +1,15 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
+import { FileText, Search } from 'lucide-react';
 import { api } from '../../services/api';
 
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
+
 const STATUS_COLORS = {
-  confirmado: { background: '#dcfce7', color: '#16a34a' },
-  pendente:   { background: '#fef9c3', color: '#ca8a04' },
-  cancelado:  { background: '#fee2e2', color: '#dc2626' },
+  confirmado: { background: '#dcfce7', color: '#166534' },
+  pendente:   { background: '#fef9c3', color: '#854d0e' },
+  cancelado:  { background: '#fee2e2', color: '#991b1b' },
   concluido:  { background: '#ede9fe', color: '#5b21b6' },
 };
 
@@ -38,17 +42,23 @@ export default function ProntuariosList() {
     });
 
   return (
-    <div>
-      <h1 style={s.title}>Prontuários</h1>
+    <motion.div {...pageAnim}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1.25rem' }}>
+        <FileText size={22} color="#3b82f6" />
+        <h1 style={s.title}>Prontuários</h1>
+      </div>
 
       <div style={s.toolbar}>
-        <input
-          type="text"
-          placeholder="Buscar por paciente..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={s.search}
-        />
+        <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
+          <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '0.7rem' }} />
+          <input
+            type="text"
+            placeholder="Buscar por paciente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={s.search}
+          />
+        </div>
         <select value={filterStatus} onChange={(e) => setFilterStatus(e.target.value)} style={s.select}>
           <option value="">Todos os status</option>
           <option value="concluido">Concluído</option>
@@ -85,7 +95,7 @@ export default function ProntuariosList() {
                         : '—'}
                     </td>
                     <td style={s.td}>{a.hora?.slice(0, 5) ?? '—'}</td>
-                    <td style={{ ...s.td, fontWeight: 500, color: '#111827' }}>{a.patients?.nome ?? '—'}</td>
+                    <td style={{ ...s.td, fontWeight: 600, color: '#111827' }}>{a.patients?.nome ?? '—'}</td>
                     <td style={s.td}>{a.rooms?.nome ?? '—'}</td>
                     <td style={s.td}>
                       <span style={{ ...s.badge, ...(STATUS_COLORS[a.status] ?? {}) }}>
@@ -95,7 +105,7 @@ export default function ProntuariosList() {
                     <td style={s.td}>
                       <button
                         onClick={() => navigate(`/psicologo/prontuario/${a.id}`)}
-                        style={s.btnEdit}
+                        style={{ ...s.btnEdit, opacity: a.status === 'cancelado' ? 0.4 : 1 }}
                         disabled={a.status === 'cancelado'}
                       >
                         {a.status === 'cancelado' ? '—' : 'Abrir'}
@@ -108,21 +118,21 @@ export default function ProntuariosList() {
           )}
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
 const s = {
-  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 1rem' },
+  title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
   toolbar: { display: 'flex', gap: '0.75rem', marginBottom: '1.25rem', flexWrap: 'wrap' },
-  search: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', width: 240 },
-  select: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem' },
-  error: { color: '#e53e3e', fontSize: '0.875rem', margin: '0.5rem 0' },
-  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 4px rgba(0,0,0,0.06)', overflow: 'hidden' },
+  search: { padding: '0.5rem 0.75rem 0.5rem 2.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', width: 240, outline: 'none' },
+  select: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit' },
+  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
+  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' },
   table: { width: '100%', borderCollapse: 'collapse' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
-  td: { padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#374151' },
-  badge: { padding: '0.25rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600 },
-  btnEdit: { padding: '0.3rem 0.75rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600 },
+  td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#374151' },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
+  btnEdit: { padding: '0.3rem 0.75rem', borderRadius: '4px', border: '1px solid #dbeafe', background: '#eff6ff', cursor: 'pointer', fontSize: '0.8rem', color: '#3b82f6', fontWeight: 600 },
 };

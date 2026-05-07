@@ -1,10 +1,14 @@
 import { useEffect, useState } from 'react';
+import { motion } from 'framer-motion';
+import { CalendarDays } from 'lucide-react';
 import { api } from '../../services/api';
 
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
+
 const STATUS_COLORS = {
-  confirmado: { background: '#dcfce7', color: '#16a34a' },
-  pendente:   { background: '#fef9c3', color: '#ca8a04' },
-  cancelado:  { background: '#fee2e2', color: '#dc2626' },
+  confirmado: { background: '#dcfce7', color: '#166534' },
+  pendente:   { background: '#fef9c3', color: '#854d0e' },
+  cancelado:  { background: '#fee2e2', color: '#991b1b' },
   concluido:  { background: '#ede9fe', color: '#5b21b6' },
 };
 
@@ -41,9 +45,12 @@ export default function PatientAppointments() {
   });
 
   return (
-    <div>
+    <motion.div {...pageAnim}>
       <div style={s.topbar}>
-        <h1 style={s.title}>Minhas consultas</h1>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <CalendarDays size={22} color="#3b82f6" />
+          <h1 style={s.title}>Minhas consultas</h1>
+        </div>
         <select
           value={filterStatus}
           onChange={(e) => setFilterStatus(e.target.value)}
@@ -79,7 +86,7 @@ export default function PatientAppointments() {
           </div>
         </>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -122,14 +129,14 @@ function AppointmentTable({ rows }) {
 const s = {
   topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem', flexWrap: 'wrap', gap: '0.75rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-  select: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem' },
-  error: { color: '#e53e3e', fontSize: '0.875rem', margin: '0.5rem 0' },
+  select: { padding: '0.5rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', outline: 'none', fontFamily: 'inherit' },
+  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   section: { marginBottom: '2rem' },
-  sectionTitle: { fontSize: '1rem', fontWeight: 700, color: '#475569', marginBottom: '0.75rem' },
+  sectionTitle: { fontSize: '0.95rem', fontWeight: 700, color: '#475569', marginBottom: '0.75rem' },
   tableWrap: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.8rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' },
+  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
-  td: { padding: '0.75rem 1rem', fontSize: '0.9rem', color: '#334155' },
-  badge: { padding: '0.25rem 0.65rem', borderRadius: '999px', fontSize: '0.78rem', fontWeight: 600 },
+  td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
 };

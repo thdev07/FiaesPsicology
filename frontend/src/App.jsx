@@ -22,6 +22,7 @@ import PatientDashboard from './pages/patient/Dashboard';
 import PatientAppointments from './pages/patient/Appointments';
 import PatientDocuments from './pages/patient/Documents';
 import PatientProfile from './pages/patient/Profile';
+import NovoAgendamento from './pages/patient/NovoAgendamento';
 import LandingPage from './pages/LandingPage';
 
 function Unauthorized() {
@@ -97,6 +98,7 @@ export default function App() {
             <Route path="/paciente/agendamentos" element={<PatientAppointments />} />
             <Route path="/paciente/documentos" element={<PatientDocuments />} />
             <Route path="/paciente/perfil" element={<PatientProfile />} />
+            <Route path="/paciente/novo-agendamento" element={<NovoAgendamento />} />
           </Route>
 
           <Route path="/" element={<LandingPage />} />

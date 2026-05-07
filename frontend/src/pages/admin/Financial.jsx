@@ -1,16 +1,19 @@
 import { useEffect, useState, useCallback } from 'react';
+import { motion } from 'framer-motion';
+import { DollarSign, Plus, X, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
 import { api } from '../../services/api';
 
+const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { tipo: 'receita', categoria: '', valor: '', status_pagamento: 'pendente', consulta_id: '' };
 
 const TIPO_COLORS = {
-  receita: { background: '#dcfce7', color: '#16a34a' },
-  despesa: { background: '#fee2e2', color: '#dc2626' },
+  receita: { background: '#dcfce7', color: '#166534' },
+  despesa: { background: '#fee2e2', color: '#991b1b' },
 };
 
 const PGTO_COLORS = {
-  pago: { background: '#dcfce7', color: '#16a34a' },
-  pendente: { background: '#fef9c3', color: '#ca8a04' },
+  pago: { background: '#dcfce7', color: '#166534' },
+  pendente: { background: '#fef9c3', color: '#854d0e' },
   cancelado: { background: '#f1f5f9', color: '#64748b' },
 };
 
@@ -103,25 +106,40 @@ export default function Financial() {
   const filtered = filterTipo ? transactions.filter((t) => t.tipo === filterTipo) : transactions;
 
   return (
-    <div>
+    <motion.div {...pageAnim}>
       <div style={s.topbar}>
-        <h1 style={s.title}>Financeiro</h1>
-        <button onClick={openCreate} style={s.btnPrimary}>+ Nova transação</button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+          <DollarSign size={22} color="#3b82f6" />
+          <h1 style={s.title}>Financeiro</h1>
+        </div>
+        <button onClick={openCreate} style={s.btnPrimary}>
+          <Plus size={15} />
+          Nova transação
+        </button>
       </div>
 
       <div style={s.summaryGrid}>
-        <div style={{ ...s.summaryCard, borderTop: '4px solid #16a34a' }}>
-          <p style={s.summaryLabel}>Receitas</p>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: '3px solid #16a34a' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <TrendingUp size={16} color="#16a34a" />
+            <p style={s.summaryLabel}>Receitas</p>
+          </div>
           <p style={{ ...s.summaryValue, color: '#16a34a' }}>{fmt(summary.receitas)}</p>
-        </div>
-        <div style={{ ...s.summaryCard, borderTop: '4px solid #dc2626' }}>
-          <p style={s.summaryLabel}>Despesas</p>
+        </motion.div>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: '3px solid #dc2626' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <TrendingDown size={16} color="#dc2626" />
+            <p style={s.summaryLabel}>Despesas</p>
+          </div>
           <p style={{ ...s.summaryValue, color: '#dc2626' }}>{fmt(summary.despesas)}</p>
-        </div>
-        <div style={{ ...s.summaryCard, borderTop: `4px solid ${summary.saldo >= 0 ? '#3b82f6' : '#f59e0b'}` }}>
-          <p style={s.summaryLabel}>Saldo</p>
+        </motion.div>
+        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: `3px solid ${summary.saldo >= 0 ? '#3b82f6' : '#f59e0b'}` }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+            <Wallet size={16} color={summary.saldo >= 0 ? '#3b82f6' : '#f59e0b'} />
+            <p style={s.summaryLabel}>Saldo</p>
+          </div>
           <p style={{ ...s.summaryValue, color: summary.saldo >= 0 ? '#3b82f6' : '#f59e0b' }}>{fmt(summary.saldo)}</p>
-        </div>
+        </motion.div>
       </div>
 
       <div style={s.filters}>
@@ -133,6 +151,7 @@ export default function Financial() {
               ...s.filterBtn,
               background: filterTipo === val ? '#3b82f6' : '#fff',
               color: filterTipo === val ? '#fff' : '#64748b',
+              borderColor: filterTipo === val ? '#3b82f6' : '#e2e8f0',
             }}
           >
             {label}
@@ -195,8 +214,16 @@ export default function Financial() {
 
       {showModal && (
         <div style={s.overlay}>
-          <div style={s.modal}>
-            <h2 style={s.modalTitle}>{editing ? 'Editar transação' : 'Nova transação'}</h2>
+          <motion.div
+            style={s.modal}
+            initial={{ opacity: 0, y: 12, scale: 0.98 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ duration: 0.2 }}
+          >
+            <div style={s.modalHeader}>
+              <h2 style={s.modalTitle}>{editing ? 'Editar transação' : 'Nova transação'}</h2>
+              <button onClick={() => setShowModal(false)} style={s.modalClose}><X size={18} /></button>
+            </div>
             <form onSubmit={handleSave} style={s.form}>
               <label style={s.label}>Tipo *</label>
               <select required value={form.tipo} onChange={(e) => setForm({ ...form, tipo: e.target.value })} style={s.input}>
@@ -240,10 +267,10 @@ export default function Financial() {
                 </button>
               </div>
             </form>
-          </div>
+          </motion.div>
         </div>
       )}
-    </div>
+    </motion.div>
   );
 }
 
@@ -251,26 +278,28 @@ const s = {
   topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
   summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' },
-  summaryCard: { background: '#fff', borderRadius: '10px', padding: '1.25rem', boxShadow: '0 1px 4px rgba(0,0,0,0.07)' },
-  summaryLabel: { fontSize: '0.78rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: '0 0 0.5rem' },
-  summaryValue: { fontSize: '1.75rem', fontWeight: 800, margin: 0, lineHeight: 1 },
+  summaryCard: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
+  summaryLabel: { fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 },
+  summaryValue: { fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: 1 },
   filters: { display: 'flex', gap: '0.5rem', marginBottom: '1rem' },
-  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid #e2e8f0', cursor: 'pointer', fontSize: '0.85rem', fontWeight: 500 },
-  error: { color: '#e53e3e', fontSize: '0.875rem', margin: '0.5rem 0' },
+  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.825rem', fontWeight: 500, transition: 'all 0.15s' },
+  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   tableWrap: { overflowX: 'auto' },
-  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 4px rgba(0,0,0,0.06)' },
-  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.78rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' },
+  table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
+  th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
-  badge: { padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.78rem', fontWeight: 600 },
-  btnPrimary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
-  btnSecondary: { padding: '0.5rem 1.25rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#64748b', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnSmall: { padding: '0.25rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.4)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '2rem', width: '100%', maxWidth: '440px', boxShadow: '0 8px 32px rgba(0,0,0,0.15)' },
-  modalTitle: { margin: '0 0 1.25rem', fontSize: '1.2rem', fontWeight: 700, color: '#1e293b' },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '440px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' },
+  modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
+  modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
+  modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },
   form: { display: 'flex', flexDirection: 'column', gap: '0.4rem' },
-  label: { fontSize: '0.85rem', fontWeight: 600, color: '#4a5568', marginTop: '0.4rem' },
-  input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.95rem', width: '100%', boxSizing: 'border-box' },
+  label: { fontSize: '0.825rem', fontWeight: 600, color: '#374151', marginTop: '0.4rem' },
+  input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' },
   modalActions: { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '1rem' },
 };
