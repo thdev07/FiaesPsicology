@@ -3,7 +3,7 @@ import { useAuth } from '../../contexts/AuthContext';
 import {
   LayoutDashboard, Users, DoorOpen, CalendarDays, UserCog,
   DollarSign, Shield, BarChart2, Calendar, FileText,
-  CalendarPlus, Receipt, UserCircle, BrainCircuit,
+  CalendarPlus, Receipt, UserCircle, BrainCircuit, X,
 } from 'lucide-react';
 
 const ICON_MAP = {
@@ -48,17 +48,44 @@ const MENUS = {
   ],
 };
 
-export default function Sidebar() {
+export default function Sidebar({ mobile = false, open = false, onClose = () => {} }) {
   const { role } = useAuth();
   const items = MENUS[role] ?? [];
 
+  const asideStyle = mobile
+    ? {
+        ...styles.aside,
+        position: 'fixed',
+        top: 0,
+        left: 0,
+        height: '100vh',
+        zIndex: 50,
+        transform: open ? 'translateX(0)' : 'translateX(-100%)',
+        transition: 'transform 0.28s cubic-bezier(0.4,0,0.2,1)',
+        boxShadow: open ? '4px 0 24px rgba(0,0,0,0.35)' : 'none',
+      }
+    : styles.aside;
+
   return (
-    <aside style={styles.aside}>
+    <aside style={asideStyle}>
       <div style={styles.logoArea}>
         <div style={styles.logoIcon}>
           <BrainCircuit size={20} color="#fff" />
         </div>
         <span style={styles.logoText}>FiaesPsychology</span>
+        {mobile && (
+          <button
+            onClick={onClose}
+            style={{
+              marginLeft: 'auto', background: 'none', border: 'none',
+              cursor: 'pointer', color: '#64748b', display: 'flex',
+              padding: '0.2rem', borderRadius: 6,
+            }}
+            aria-label="Fechar menu"
+          >
+            <X size={20} color="#94a3b8" />
+          </button>
+        )}
       </div>
 
       <nav style={styles.nav}>
@@ -69,6 +96,7 @@ export default function Sidebar() {
               key={to}
               to={to}
               end={end}
+              onClick={() => mobile && onClose()}
               style={({ isActive }) => ({
                 ...styles.link,
                 background: isActive ? '#2563eb' : 'transparent',
@@ -130,6 +158,7 @@ const styles = {
     padding: '0.75rem 0.5rem',
     gap: '0.15rem',
     flex: 1,
+    overflowY: 'auto',
   },
   link: {
     padding: '0.55rem 0.75rem',

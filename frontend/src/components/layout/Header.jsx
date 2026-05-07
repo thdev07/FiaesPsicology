@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
-import { Bell, LogOut } from 'lucide-react';
+import { Bell, LogOut, Menu, X } from 'lucide-react';
 
 const ROLE_LABEL = {
   admin: 'Administrador',
@@ -15,7 +15,7 @@ function getInitials(nome) {
   return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
 }
 
-export default function Header() {
+export default function Header({ mobile = false, onMenuToggle = () => {}, sidebarOpen = false }) {
   const { user, role, signOut } = useAuth();
   const navigate = useNavigate();
 
@@ -30,9 +30,18 @@ export default function Header() {
   return (
     <header style={styles.header}>
       <div style={styles.left}>
-        <span style={styles.pageHint}>
-          {ROLE_LABEL[role] ?? role}
-        </span>
+        {mobile && (
+          <button
+            onClick={onMenuToggle}
+            style={styles.hamburger}
+            aria-label={sidebarOpen ? 'Fechar menu' : 'Abrir menu'}
+          >
+            {sidebarOpen ? <X size={20} color="#475569" /> : <Menu size={20} color="#475569" />}
+          </button>
+        )}
+        {!mobile && (
+          <span style={styles.pageHint}>{ROLE_LABEL[role] ?? role}</span>
+        )}
       </div>
 
       <div style={styles.right}>
@@ -44,15 +53,17 @@ export default function Header() {
 
         <div style={styles.userInfo}>
           <div style={styles.avatar}>{initials}</div>
-          <div style={styles.userText}>
-            <span style={styles.nome}>{nome}</span>
-            <span style={styles.roleLabel}>{ROLE_LABEL[role] ?? role}</span>
-          </div>
+          {!mobile && (
+            <div style={styles.userText}>
+              <span style={styles.nome}>{nome}</span>
+              <span style={styles.roleLabel}>{ROLE_LABEL[role] ?? role}</span>
+            </div>
+          )}
         </div>
 
         <button onClick={handleLogout} style={styles.logoutBtn} title="Sair">
           <LogOut size={15} />
-          <span>Sair</span>
+          {!mobile && <span>Sair</span>}
         </button>
       </div>
     </header>
@@ -63,7 +74,7 @@ const styles = {
   header: {
     background: '#fff',
     borderBottom: '1px solid #e2e8f0',
-    padding: '0 1.5rem',
+    padding: '0 1rem',
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
@@ -75,6 +86,18 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
   },
+  hamburger: {
+    width: 38,
+    height: 38,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'none',
+    border: '1px solid #e2e8f0',
+    borderRadius: 8,
+    cursor: 'pointer',
+    transition: 'background 0.2s',
+  },
   pageHint: {
     fontSize: '0.8rem',
     fontWeight: 600,
@@ -85,7 +108,7 @@ const styles = {
   right: {
     display: 'flex',
     alignItems: 'center',
-    gap: '0.75rem',
+    gap: '0.6rem',
   },
   iconBtn: {
     width: 36,
@@ -139,7 +162,7 @@ const styles = {
     lineHeight: 1.2,
   },
   logoutBtn: {
-    padding: '0.4rem 0.85rem',
+    padding: '0.4rem 0.65rem',
     borderRadius: '6px',
     border: '1px solid #e2e8f0',
     background: '#fff',
