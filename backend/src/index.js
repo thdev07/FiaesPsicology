@@ -13,6 +13,7 @@ import insuranceRoutes from './modules/insurance/insurance.routes.js';
 import reportsRoutes from './modules/reports/reports.routes.js';
 
 import { errorMiddleware } from './middlewares/error.middleware.js';
+import { startRemindersJob } from './jobs/reminders.job.js';
 
 const app = express();
 const PORT = process.env.PORT || 3001;
@@ -34,4 +35,7 @@ app.use('/api/reports', reportsRoutes);
 
 app.use(errorMiddleware);
 
-app.listen(PORT, () => console.log(`Servidor rodando na porta ${PORT}`));
+app.listen(PORT, () => {
+  console.log(`Servidor rodando na porta ${PORT}`);
+  startRemindersJob();
+});

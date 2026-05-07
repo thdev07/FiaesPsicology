@@ -24,6 +24,18 @@ export async function listAppointmentsService({ role, userId, userEmail } = {}) 
 export const getAppointmentByIdService = (id) =>
   supabase.from('appointments').select('*, patients(nome), users(nome), rooms(nome)').eq('id', id).single();
 
+export async function getAppointmentByIdFullService(id) {
+  const { data } = await supabase
+    .from('appointments')
+    .select('*, patients(nome, email), users(nome), rooms(nome)')
+    .eq('id', id)
+    .single();
+  return data;
+}
+
+export const saveCalendarEventIdService = (id, eventId) =>
+  supabase.from('appointments').update({ calendar_event_id: eventId }).eq('id', id);
+
 export async function createAppointmentService(data) {
   // Valida conflito de sala antes de inserir
   const { data: conflict } = await supabase
