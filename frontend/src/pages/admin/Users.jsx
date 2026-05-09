@@ -1,13 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { UserCog, Plus, X } from 'lucide-react';
+import { UserCog, Plus, X, Search } from 'lucide-react';
 import { api } from '../../services/api';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { nome: '', email: '', password: '', role: 'psicologo', registro_profissional: '' };
+const EMPTY_EDIT = { nome: '', valor_consulta_particular: '', percentual_repasse: '' };
 
 const ROLE_LABEL = { admin: 'Administrador', psicologo: 'Psicólogo', paciente: 'Paciente' };
 const ROLE_COLOR = { admin: '#7c3aed', psicologo: '#0284c7', paciente: '#059669' };
+const ROLES = ['', 'psicologo', 'admin', 'paciente'];
 
 export default function Users() {
   const [users, setUsers] = useState([]);
@@ -16,9 +18,11 @@ export default function Users() {
   const [showModal, setShowModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
   const [editing, setEditing] = useState(null);
-  const [editForm, setEditForm] = useState({ valor_consulta_particular: '' });
+  const [editForm, setEditForm] = useState(EMPTY_EDIT);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
+  const [filterRole, setFilterRole] = useState('');
 
   useEffect(() => { fetchUsers(); }, []);
 
@@ -52,7 +56,12 @@ export default function Users() {
 
   function openEdit(user) {
     setEditing(user);
-    setEditForm({ valor_consulta_particular: user.valor_consulta_particular ?? '' });
+    setEditForm({
+      nome: user.nome ?? '',
+      valor_consulta_particular: user.valor_consulta_particular ?? '',
+      percentual_repasse: user.percentual_repasse ?? '',
+    });
+    setError('');
     setShowEditModal(true);
   }
 
@@ -61,9 +70,12 @@ export default function Users() {
     setSaving(true);
     setError('');
     try {
-      await api.put(`/users/${editing.id}`, {
-        valor_consulta_particular: editForm.valor_consulta_particular ? Number(editForm.valor_consulta_particular) : null,
-      });
+      const payload = { nome: editForm.nome };
+      if (editing.role === 'psicologo') {
+        payload.valor_consulta_particular = editForm.valor_consulta_particular ? Number(editForm.valor_consulta_particular) : null;
+        payload.percentual_repasse = editForm.percentual_repasse ? Number(editForm.percentual_repasse) : null;
+      }
+      await api.put(`/users/${editing.id}`, payload);
       setShowEditModal(false);
       fetchUsers();
     } catch (err) {
@@ -83,6 +95,13 @@ export default function Users() {
     }
   }
 
+  const q = search.toLowerCase();
+  const filtered = users.filter((u) => {
+    const matchRole = !filterRole || u.role === filterRole;
+    const matchSearch = !q || u.nome?.toLowerCase().includes(q) || u.email?.toLowerCase().includes(q);
+    return matchRole && matchSearch;
+  });
+
   return (
     <motion.div {...pageAnim}>
       <div style={s.topbar}>
@@ -96,24 +115,47 @@ export default function Users() {
         </button>
       </div>
 
+      <div style={s.toolbar}>
+        <div style={s.searchWrap}>
+          <Search size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+          <input
+            style={s.searchInput}
+            placeholder="Buscar por nome ou email..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+          {ROLES.map((r) => (
+            <button
+              key={r}
+              onClick={() => setFilterRole(r)}
+              style={{ ...s.filterBtn, background: filterRole === r ? '#3b82f6' : '#fff', color: filterRole === r ? '#fff' : '#64748b', borderColor: filterRole === r ? '#3b82f6' : '#e2e8f0' }}
+            >
+              {r === '' ? 'Todos' : ROLE_LABEL[r]}
+            </button>
+          ))}
+        </div>
+      </div>
+
       {error && <p style={s.error}>{error}</p>}
 
       {loading ? (
         <p style={{ color: '#94a3b8' }}>Carregando...</p>
-      ) : users.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>Nenhum usuário cadastrado.</p>
+      ) : filtered.length === 0 ? (
+        <p style={{ color: '#94a3b8' }}>Nenhum usuário encontrado.</p>
       ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
             <thead>
               <tr>
-                {['Nome', 'Email', 'Role', 'CRP', 'Valor Consulta', 'Cadastro', 'Ações'].map((h) => (
+                {['Nome', 'Email', 'Perfil', 'CRP', 'Valor consulta', 'Repasse %', 'Cadastro', 'Ações'].map((h) => (
                   <th key={h} style={s.th}>{h}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
-              {users.map((u) => (
+              {filtered.map((u) => (
                 <tr key={u.id} style={s.tr}>
                   <td style={{ ...s.td, fontWeight: 600, color: '#1e293b' }}>{u.nome}</td>
                   <td style={s.td}>{u.email}</td>
@@ -124,16 +166,15 @@ export default function Users() {
                   </td>
                   <td style={s.td}>{u.registro_profissional ?? '—'}</td>
                   <td style={s.td}>
-                    {u.valor_consulta_particular != null
-                      ? `R$ ${Number(u.valor_consulta_particular).toFixed(2)}`
-                      : '—'}
+                    {u.valor_consulta_particular != null ? `R$ ${Number(u.valor_consulta_particular).toFixed(2)}` : '—'}
+                  </td>
+                  <td style={s.td}>
+                    {u.percentual_repasse != null ? `${u.percentual_repasse}%` : '—'}
                   </td>
                   <td style={s.td}>{new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
                   <td style={s.td}>
                     <div style={{ display: 'flex', gap: '0.4rem' }}>
-                      {u.role === 'psicologo' && (
-                        <button onClick={() => openEdit(u)} style={s.btnEdit}>Editar</button>
-                      )}
+                      <button onClick={() => openEdit(u)} style={s.btnEdit}>Editar</button>
                       <button onClick={() => handleDelete(u.id)} style={s.btnDelete}>Remover</button>
                     </div>
                   </td>
@@ -144,50 +185,25 @@ export default function Users() {
         </div>
       )}
 
+      {/* Modal criar */}
       {showModal && (
         <div style={s.overlay}>
-          <motion.div
-            style={s.modal}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div style={s.modal} initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}>
             <div style={s.modalHeader}>
               <h2 style={s.modalTitle}>Novo usuário</h2>
               <button onClick={() => setShowModal(false)} style={s.modalClose}><X size={18} /></button>
             </div>
             <form onSubmit={handleSave} style={s.form}>
               <label style={s.label}>Nome completo *</label>
-              <input
-                required
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                placeholder="Nome do profissional"
-                style={s.input}
-              />
+              <input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Nome do profissional" style={s.input} />
 
               <label style={s.label}>Email *</label>
-              <input
-                type="email"
-                required
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="email@exemplo.com"
-                style={s.input}
-              />
+              <input type="email" required value={form.email} onChange={(e) => setForm({ ...form, email: e.target.value })} placeholder="email@exemplo.com" style={s.input} />
 
               <label style={s.label}>Senha *</label>
-              <input
-                type="password"
-                required
-                minLength={6}
-                value={form.password}
-                onChange={(e) => setForm({ ...form, password: e.target.value })}
-                placeholder="Mínimo 6 caracteres"
-                style={s.input}
-              />
+              <input type="password" required minLength={6} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} placeholder="Mínimo 6 caracteres" style={s.input} />
 
-              <label style={s.label}>Role *</label>
+              <label style={s.label}>Perfil *</label>
               <select value={form.role} onChange={(e) => setForm({ ...form, role: e.target.value })} style={s.input}>
                 <option value="psicologo">Psicólogo</option>
                 <option value="admin">Administrador</option>
@@ -196,12 +212,7 @@ export default function Users() {
               {form.role === 'psicologo' && (
                 <>
                   <label style={s.label}>Registro profissional (CRP)</label>
-                  <input
-                    value={form.registro_profissional}
-                    onChange={(e) => setForm({ ...form, registro_profissional: e.target.value })}
-                    placeholder="Ex: CRP-05/12345"
-                    style={s.input}
-                  />
+                  <input value={form.registro_profissional} onChange={(e) => setForm({ ...form, registro_profissional: e.target.value })} placeholder="Ex: CRP-05/12345" style={s.input} />
                 </>
               )}
 
@@ -209,47 +220,42 @@ export default function Users() {
 
               <div style={s.modalActions}>
                 <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>Cancelar</button>
-                <button type="submit" disabled={saving} style={s.btnPrimary}>
-                  {saving ? 'Criando...' : 'Criar usuário'}
-                </button>
+                <button type="submit" disabled={saving} style={s.btnPrimary}>{saving ? 'Criando...' : 'Criar usuário'}</button>
               </div>
             </form>
           </motion.div>
         </div>
       )}
 
+      {/* Modal editar */}
       {showEditModal && editing && (
         <div style={s.overlay}>
-          <motion.div
-            style={s.modal}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div style={s.modal} initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}>
             <div style={s.modalHeader}>
               <h2 style={s.modalTitle}>Editar — {editing.nome}</h2>
               <button onClick={() => setShowEditModal(false)} style={s.modalClose}><X size={18} /></button>
             </div>
             <form onSubmit={handleEditSave} style={s.form}>
-              <label style={s.label}>Valor padrão da consulta particular (R$)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={editForm.valor_consulta_particular}
-                onChange={(e) => setEditForm({ valor_consulta_particular: e.target.value })}
-                placeholder="Ex: 150.00"
-                style={s.input}
-              />
-              <p style={{ fontSize: '0.775rem', color: '#94a3b8', margin: '0.1rem 0' }}>
-                Usado para preencher automaticamente o valor das consultas particulares deste psicólogo.
-              </p>
+              <label style={s.label}>Nome completo *</label>
+              <input required value={editForm.nome} onChange={(e) => setEditForm({ ...editForm, nome: e.target.value })} style={s.input} />
+
+              {editing.role === 'psicologo' && (
+                <>
+                  <label style={s.label}>Valor padrão da consulta particular (R$)</label>
+                  <input type="number" min="0" step="0.01" value={editForm.valor_consulta_particular} onChange={(e) => setEditForm({ ...editForm, valor_consulta_particular: e.target.value })} placeholder="Ex: 150.00" style={s.input} />
+
+                  <label style={s.label}>Percentual de repasse (%)</label>
+                  <input type="number" min="0" max="100" step="1" value={editForm.percentual_repasse} onChange={(e) => setEditForm({ ...editForm, percentual_repasse: e.target.value })} placeholder="Ex: 60" style={s.input} />
+                  <p style={{ fontSize: '0.775rem', color: '#94a3b8', margin: '0.1rem 0' }}>
+                    Percentual do valor da consulta repassado ao psicólogo.
+                  </p>
+                </>
+              )}
+
               {error && <p style={s.error}>{error}</p>}
               <div style={s.modalActions}>
                 <button type="button" onClick={() => setShowEditModal(false)} style={s.btnSecondary}>Cancelar</button>
-                <button type="submit" disabled={saving} style={s.btnPrimary}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </button>
+                <button type="submit" disabled={saving} style={s.btnPrimary}>{saving ? 'Salvando...' : 'Salvar'}</button>
               </div>
             </form>
           </motion.div>
@@ -260,8 +266,12 @@ export default function Users() {
 }
 
 const s = {
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
+  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+  toolbar: { display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap', alignItems: 'center' },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', flex: 1, minWidth: 200 },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
+  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.8rem', fontWeight: 500, transition: 'all 0.15s' },
   error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   tableWrap: { overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
@@ -269,12 +279,12 @@ const s = {
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { padding: '0.2rem 0.7rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
-  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
   btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '460px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' },
+  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '460px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
   modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { DoorOpen, Plus, X } from 'lucide-react';
+import { DoorOpen, Plus, X, Search } from 'lucide-react';
 import { api } from '../../services/api';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
@@ -14,6 +14,7 @@ export default function Rooms() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => { fetchRooms(); }, []);
 
@@ -38,10 +39,7 @@ export default function Rooms() {
 
   function openEdit(room) {
     setEditing(room);
-    setForm({
-      nome: room.nome ?? '',
-      recursos: (room.recursos ?? []).join(', '),
-    });
+    setForm({ nome: room.nome ?? '', recursos: (room.recursos ?? []).join(', ') });
     setError('');
     setShowModal(true);
   }
@@ -79,6 +77,11 @@ export default function Rooms() {
     }
   }
 
+  const q = search.toLowerCase();
+  const filtered = rooms.filter((r) =>
+    !q || r.nome?.toLowerCase().includes(q) || r.recursos?.some((rec) => rec.toLowerCase().includes(q))
+  );
+
   return (
     <motion.div {...pageAnim}>
       <div style={s.topbar}>
@@ -92,21 +95,26 @@ export default function Rooms() {
         </button>
       </div>
 
+      <div style={s.searchWrap}>
+        <Search size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+        <input
+          style={s.searchInput}
+          placeholder="Buscar por nome ou recurso..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       {error && <p style={s.error}>{error}</p>}
 
       {loading ? (
         <p style={{ color: '#94a3b8' }}>Carregando...</p>
-      ) : rooms.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>Nenhuma sala cadastrada.</p>
+      ) : filtered.length === 0 ? (
+        <p style={{ color: '#94a3b8' }}>Nenhuma sala encontrada.</p>
       ) : (
         <div style={s.grid}>
-          {rooms.map((room) => (
-            <motion.div
-              key={room.id}
-              whileHover={{ y: -2 }}
-              transition={{ duration: 0.15 }}
-              style={s.card}
-            >
+          {filtered.map((room) => (
+            <motion.div key={room.id} whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={s.card}>
               <div style={s.cardHeader}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <div style={{ width: 36, height: 36, borderRadius: 8, background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -133,43 +141,23 @@ export default function Rooms() {
 
       {showModal && (
         <div style={s.overlay}>
-          <motion.div
-            style={s.modal}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div style={s.modal} initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}>
             <div style={s.modalHeader}>
               <h2 style={s.modalTitle}>{editing ? 'Editar sala' : 'Nova sala'}</h2>
               <button onClick={() => setShowModal(false)} style={s.modalClose}><X size={18} /></button>
             </div>
             <form onSubmit={handleSave} style={s.form}>
               <label style={s.label}>Nome da sala *</label>
-              <input
-                required
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                placeholder="Ex: Sala 01"
-                style={s.input}
-              />
+              <input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Sala 01" style={s.input} />
 
               <label style={s.label}>Recursos (separados por vírgula)</label>
-              <input
-                value={form.recursos}
-                onChange={(e) => setForm({ ...form, recursos: e.target.value })}
-                placeholder="Ex: Ar condicionado, Sofá, TV"
-                style={s.input}
-              />
+              <input value={form.recursos} onChange={(e) => setForm({ ...form, recursos: e.target.value })} placeholder="Ex: Ar condicionado, Sofá, TV" style={s.input} />
 
               {error && <p style={s.error}>{error}</p>}
 
               <div style={s.modalActions}>
-                <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>
-                  Cancelar
-                </button>
-                <button type="submit" disabled={saving} style={s.btnPrimary}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </button>
+                <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>Cancelar</button>
+                <button type="submit" disabled={saving} style={s.btnPrimary}>{saving ? 'Salvando...' : 'Salvar'}</button>
               </div>
             </form>
           </motion.div>
@@ -180,8 +168,10 @@ export default function Rooms() {
 }
 
 const s = {
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
+  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', marginBottom: '1rem' },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
   error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   grid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: '1rem' },
   card: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
@@ -190,7 +180,7 @@ const s = {
   cardActions: { display: 'flex', gap: '0.4rem' },
   tags: { display: 'flex', flexWrap: 'wrap', gap: '0.4rem' },
   tag: { background: '#eff6ff', color: '#3b82f6', borderRadius: '4px', padding: '0.2rem 0.6rem', fontSize: '0.78rem', fontWeight: 500 },
-  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
   btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },

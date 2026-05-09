@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Shield, Plus, X } from 'lucide-react';
+import { Shield, Plus, X, Search } from 'lucide-react';
 import { api } from '../../services/api';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
@@ -14,6 +14,7 @@ export default function Convenios() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
+  const [search, setSearch] = useState('');
 
   useEffect(() => { fetchPlans(); }, []);
 
@@ -85,6 +86,11 @@ export default function Convenios() {
     }
   }
 
+  const q = search.toLowerCase();
+  const filtered = plans.filter((p) =>
+    !q || p.nome?.toLowerCase().includes(q) || p.codigo?.toLowerCase().includes(q)
+  );
+
   return (
     <motion.div {...pageAnim}>
       <div style={s.topbar}>
@@ -98,12 +104,22 @@ export default function Convenios() {
         </button>
       </div>
 
+      <div style={s.searchWrap}>
+        <Search size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+        <input
+          style={s.searchInput}
+          placeholder="Buscar por nome ou código..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
+      </div>
+
       {error && <p style={s.error}>{error}</p>}
 
       {loading ? (
         <p style={{ color: '#94a3b8' }}>Carregando...</p>
-      ) : plans.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>Nenhum convênio cadastrado.</p>
+      ) : filtered.length === 0 ? (
+        <p style={{ color: '#94a3b8' }}>Nenhum convênio encontrado.</p>
       ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
@@ -115,19 +131,15 @@ export default function Convenios() {
               </tr>
             </thead>
             <tbody>
-              {plans.map((p) => (
+              {filtered.map((p) => (
                 <tr key={p.id} style={s.tr}>
                   <td style={{ ...s.td, fontWeight: 600, color: '#1e293b' }}>{p.nome}</td>
                   <td style={s.td}>{p.codigo ?? '—'}</td>
                   <td style={s.td}>
-                    {p.valor_consulta != null
-                      ? <span style={s.badgeBlue}>R$ {Number(p.valor_consulta).toFixed(2)}</span>
-                      : '—'}
+                    {p.valor_consulta != null ? <span style={s.badgeBlue}>R$ {Number(p.valor_consulta).toFixed(2)}</span> : '—'}
                   </td>
                   <td style={s.td}>
-                    {p.taxa_reembolso != null
-                      ? <span style={s.badge}>{p.taxa_reembolso}%</span>
-                      : '—'}
+                    {p.taxa_reembolso != null ? <span style={s.badge}>{p.taxa_reembolso}%</span> : '—'}
                   </td>
                   <td style={{ ...s.td, maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                     {p.observacoes ?? '—'}
@@ -147,75 +159,37 @@ export default function Convenios() {
 
       {showModal && (
         <div style={s.overlay}>
-          <motion.div
-            style={s.modal}
-            initial={{ opacity: 0, y: 12, scale: 0.98 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ duration: 0.2 }}
-          >
+          <motion.div style={s.modal} initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}>
             <div style={s.modalHeader}>
               <h2 style={s.modalTitle}>{editing ? 'Editar convênio' : 'Novo convênio'}</h2>
               <button onClick={() => setShowModal(false)} style={s.modalClose}><X size={18} /></button>
             </div>
             <form onSubmit={handleSave} style={s.form}>
               <label style={s.label}>Nome do convênio *</label>
-              <input
-                required
-                value={form.nome}
-                onChange={(e) => setForm({ ...form, nome: e.target.value })}
-                placeholder="Ex: Unimed, Bradesco Saúde"
-                style={s.input}
-              />
+              <input required value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex: Unimed, Bradesco Saúde" style={s.input} />
 
               <label style={s.label}>Código</label>
-              <input
-                value={form.codigo}
-                onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-                placeholder="Ex: UNI-001"
-                style={s.input}
-              />
+              <input value={form.codigo} onChange={(e) => setForm({ ...form, codigo: e.target.value })} placeholder="Ex: UNI-001" style={s.input} />
 
-              <label style={s.label}>Valor da consulta (R$)</label>
-              <input
-                type="number"
-                min="0"
-                step="0.01"
-                value={form.valor_consulta}
-                onChange={(e) => setForm({ ...form, valor_consulta: e.target.value })}
-                placeholder="Ex: 150.00"
-                style={s.input}
-              />
-
-              <label style={s.label}>Taxa de reembolso (%)</label>
-              <input
-                type="number"
-                min="0"
-                max="100"
-                step="0.01"
-                value={form.taxa_reembolso}
-                onChange={(e) => setForm({ ...form, taxa_reembolso: e.target.value })}
-                placeholder="Ex: 70"
-                style={s.input}
-              />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
+                <div>
+                  <label style={s.label}>Valor da consulta (R$)</label>
+                  <input type="number" min="0" step="0.01" value={form.valor_consulta} onChange={(e) => setForm({ ...form, valor_consulta: e.target.value })} placeholder="Ex: 150.00" style={s.input} />
+                </div>
+                <div>
+                  <label style={s.label}>Taxa de reembolso (%)</label>
+                  <input type="number" min="0" max="100" step="0.01" value={form.taxa_reembolso} onChange={(e) => setForm({ ...form, taxa_reembolso: e.target.value })} placeholder="Ex: 70" style={s.input} />
+                </div>
+              </div>
 
               <label style={s.label}>Observações</label>
-              <textarea
-                value={form.observacoes}
-                onChange={(e) => setForm({ ...form, observacoes: e.target.value })}
-                placeholder="Informações adicionais sobre o convênio..."
-                rows={3}
-                style={{ ...s.input, resize: 'vertical' }}
-              />
+              <textarea value={form.observacoes} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} placeholder="Informações adicionais sobre o convênio..." rows={3} style={{ ...s.input, resize: 'vertical' }} />
 
               {error && <p style={s.error}>{error}</p>}
 
               <div style={s.modalActions}>
-                <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>
-                  Cancelar
-                </button>
-                <button type="submit" disabled={saving} style={s.btnPrimary}>
-                  {saving ? 'Salvando...' : 'Salvar'}
-                </button>
+                <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>Cancelar</button>
+                <button type="submit" disabled={saving} style={s.btnPrimary}>{saving ? 'Salvando...' : 'Salvar'}</button>
               </div>
             </form>
           </motion.div>
@@ -226,8 +200,10 @@ export default function Convenios() {
 }
 
 const s = {
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' },
+  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', marginBottom: '1rem' },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
   error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
   tableWrap: { overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
@@ -236,12 +212,12 @@ const s = {
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { background: '#dcfce7', color: '#166534', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
   badgeBlue: { background: '#dbeafe', color: '#1d4ed8', padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
-  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
   btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '460px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
+  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '480px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
   modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },

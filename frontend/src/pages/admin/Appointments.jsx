@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Plus, X } from 'lucide-react';
+import { CalendarDays, Plus, X, Search } from 'lucide-react';
 import { api } from '../../services/api';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
@@ -33,6 +33,7 @@ export default function Appointments() {
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
+  const [search, setSearch] = useState('');
 
   useEffect(() => {
     Promise.all([
@@ -90,9 +91,15 @@ export default function Appointments() {
     }
   }
 
-  const filtered = filterStatus
-    ? appointments.filter((a) => a.status === filterStatus)
-    : appointments;
+  const q = search.toLowerCase();
+  const filtered = appointments.filter((a) => {
+    const matchStatus = !filterStatus || a.status === filterStatus;
+    const matchSearch = !q ||
+      a.patients?.nome?.toLowerCase().includes(q) ||
+      a.users?.nome?.toLowerCase().includes(q) ||
+      a.rooms?.nome?.toLowerCase().includes(q);
+    return matchStatus && matchSearch;
+  });
 
   const filterOptions = ['', 'confirmado', 'pendente', 'cancelado', 'concluido'];
 
@@ -107,6 +114,16 @@ export default function Appointments() {
           <Plus size={15} />
           Novo agendamento
         </button>
+      </div>
+
+      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', marginBottom: '0.75rem' }}>
+        <Search size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
+        <input
+          style={{ border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' }}
+          placeholder="Buscar por paciente, psicólogo ou sala..."
+          value={search}
+          onChange={(e) => setSearch(e.target.value)}
+        />
       </div>
 
       <div style={s.filters}>
