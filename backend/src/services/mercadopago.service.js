@@ -1,4 +1,4 @@
-import MercadoPagoConfig, { Payment, Preference } from 'mercadopago';
+import { MercadoPagoConfig, Payment, Preference } from 'mercadopago';
 
 function getClient() {
   return new MercadoPagoConfig({
