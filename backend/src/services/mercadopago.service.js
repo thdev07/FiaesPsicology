@@ -10,27 +10,39 @@ function getClient() {
  * Cria pagamento PIX + preferência de cartão para uma transação da clínica.
  * Retorna: { pixPaymentId, qr_code, qr_code_base64, checkout_url }
  */
-export async function createMercadoPagoPayment({ transactionId, amount, description, patientEmail, patientName }) {
+export async function createMercadoPagoPayment({ transactionId, amount, description, patientEmail, patientName, patientCpf }) {
   const client = getClient();
   const baseUrl = process.env.APP_BASE_URL ?? 'http://localhost:5173';
   const webhookUrl = `${process.env.API_BASE_URL ?? 'http://localhost:3001'}/api/financial/payment/webhook`;
 
+  const cpfDigits = patientCpf?.replace(/\D/g, '') ?? '';
+  const identification = cpfDigits.length === 11
+    ? { type: 'CPF', number: cpfDigits }
+    : undefined;
+
   // 1. Pagamento PIX (QR Code in-app)
   const pixPayment = new Payment(client);
-  const pixResult = await pixPayment.create({
-    body: {
-      transaction_amount: Number(amount),
-      description,
-      payment_method_id: 'pix',
-      payer: {
-        email: patientEmail,
-        first_name: patientName?.split(' ')[0] ?? 'Paciente',
-        last_name: patientName?.split(' ').slice(1).join(' ') || 'Paciente',
+  let pixResult;
+  try {
+    pixResult = await pixPayment.create({
+      body: {
+        transaction_amount: Number(amount),
+        description,
+        payment_method_id: 'pix',
+        payer: {
+          email: patientEmail,
+          first_name: patientName?.split(' ')[0] ?? 'Paciente',
+          last_name: patientName?.split(' ').slice(1).join(' ') || 'Paciente',
+          ...(identification ? { identification } : {}),
+        },
+        notification_url: webhookUrl,
+        external_reference: transactionId,
       },
-      notification_url: webhookUrl,
-      external_reference: transactionId,
-    },
-  });
+    });
+  } catch (err) {
+    const detail = err?.cause?.[0]?.description ?? err?.message ?? 'Erro ao criar pagamento PIX';
+    throw { status: 502, message: `Mercado Pago: ${detail}` };
+  }
 
   // 2. Preferência de checkout (cartão de crédito/débito)
   const preference = new Preference(client);

@@ -115,7 +115,7 @@ export async function createPaymentService(transactionId, userEmail) {
   // Verifica se a transação pertence ao paciente
   const { data: patient } = await supabase
     .from('patients')
-    .select('id, nome, email')
+    .select('id, nome, email, cpf')
     .eq('email', userEmail)
     .maybeSingle();
 
@@ -142,6 +142,7 @@ export async function createPaymentService(transactionId, userEmail) {
     description,
     patientEmail: patient.email,
     patientName: patient.nome,
+    patientCpf: patient.cpf,
   });
 
   // Salva o payment_id e URL na transação para referência futura
