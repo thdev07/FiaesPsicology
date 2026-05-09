@@ -91,6 +91,13 @@ export async function paymentWebhook(req, res) {
   }
 }
 
+export async function getMyRepasse(req, res, next) {
+  try {
+    const data = await transactionsService.getMyRepasseService(req.user.email);
+    res.json(data);
+  } catch (err) { next(err); }
+}
+
 export async function getPaymentStatus(req, res, next) {
   try {
     const data = await transactionsService.getPaymentStatusService(req.params.transactionId, req.user.email);

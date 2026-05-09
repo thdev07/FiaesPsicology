@@ -231,6 +231,45 @@ export async function getMyDebtsService(userEmail) {
   return data ?? [];
 }
 
+export async function getMyRepasseService(userEmail) {
+  const { data: user } = await supabase
+    .from('users')
+    .select('id')
+    .eq('email', userEmail)
+    .maybeSingle();
+
+  if (!user) return { list: [], totalPendente: 0, totalPago: 0 };
+
+  const { data: appts } = await supabase
+    .from('appointments')
+    .select('id')
+    .eq('psicologo_id', user.id);
+
+  if (!appts?.length) return { list: [], totalPendente: 0, totalPago: 0 };
+
+  const apptIds = appts.map((a) => a.id);
+
+  const { data, error } = await supabase
+    .from('transactions')
+    .select('*, appointments(data, hora, patients(nome))')
+    .eq('tipo', 'despesa')
+    .eq('categoria', 'Repasse Psicólogo')
+    .in('consulta_id', apptIds)
+    .order('created_at', { ascending: false });
+
+  if (error) throw error;
+
+  const list = data ?? [];
+  const totalPendente = list
+    .filter((t) => t.status_pagamento === 'pendente')
+    .reduce((s, t) => s + Number(t.valor), 0);
+  const totalPago = list
+    .filter((t) => t.status_pagamento === 'pago')
+    .reduce((s, t) => s + Number(t.valor), 0);
+
+  return { list, totalPendente, totalPago };
+}
+
 export async function getFinancialSummaryService() {
   const { data, error } = await supabase
     .from('transactions')
