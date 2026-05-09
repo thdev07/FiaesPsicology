@@ -70,6 +70,16 @@ export default function Appointments() {
     }
   }
 
+  async function handleConfirm(id) {
+    if (!confirm('Confirmar este agendamento? Isso irá gerar a cobrança para o paciente.')) return;
+    try {
+      await api.put(`/appointments/${id}`, { status: 'confirmado' });
+      fetchAppointments();
+    } catch (err) {
+      setError(err?.error ?? 'Erro ao confirmar agendamento.');
+    }
+  }
+
   async function handleCancel(id) {
     if (!confirm('Cancelar este agendamento?')) return;
     try {
@@ -146,8 +156,13 @@ export default function Appointments() {
                       {a.status}
                     </span>
                   </td>
-                  <td style={s.td}>
-                    {a.status !== 'cancelado' && (
+                  <td style={{ ...s.td, display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {a.status === 'pendente' && (
+                      <button onClick={() => handleConfirm(a.id)} style={s.btnConfirm}>
+                        Confirmar
+                      </button>
+                    )}
+                    {a.status !== 'cancelado' && a.status !== 'concluido' && (
                       <button onClick={() => handleCancel(a.id)} style={s.btnDelete}>
                         Cancelar
                       </button>
@@ -238,6 +253,7 @@ const s = {
   badge: { padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
   btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
+  btnConfirm: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.8rem', color: '#16a34a', fontWeight: 600 },
   btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },
   overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
   modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '500px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
