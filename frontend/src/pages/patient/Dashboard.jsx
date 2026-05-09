@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText } from 'lucide-react';
+import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText, CreditCard } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
+import { useToast } from '../../contexts/ToastContext';
+import { SkeletonTable, SkeletonCard } from '../../components/ui/Skeleton';
+import PaymentModal from '../../components/PaymentModal';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
@@ -47,9 +50,11 @@ function StatCard({ label, children, color, Icon }) {
 export default function PatientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const { show: toast } = useToast();
   const [appointments, setAppointments] = useState([]);
   const [debts, setDebts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [payingTransaction, setPayingTransaction] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -73,7 +78,18 @@ export default function PatientDashboard() {
   const pendingDebts = debts.filter((d) => d.status_pagamento === 'pendente');
   const totalPending = pendingDebts.reduce((sum, d) => sum + Number(d.valor), 0);
 
-  if (loading) return <p style={{ color: '#94a3b8' }}>Carregando...</p>;
+  function reloadDebts() {
+    api.get('/financial/my-debts').then((d) => setDebts(Array.isArray(d) ? d : [])).catch(() => {});
+  }
+
+  if (loading) return (
+    <div>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
+        {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <SkeletonTable rows={4} cols={5} />
+    </div>
+  );
 
   return (
     <motion.div {...pageAnim}>
@@ -139,7 +155,7 @@ export default function PatientDashboard() {
             <table style={s.table}>
               <thead>
                 <tr>
-                  {['Data', 'Psicólogo', 'Descrição', 'Valor', 'Status'].map((h) => (
+                  {['Data', 'Psicólogo', 'Descrição', 'Valor', 'Status', ''].map((h) => (
                     <th key={h} style={s.th}>{h}</th>
                   ))}
                 </tr>
@@ -158,12 +174,26 @@ export default function PatientDashboard() {
                     <td style={s.td}>
                       <Badge label={d.status_pagamento} colors={PGTO_COLORS[d.status_pagamento] ?? {}} />
                     </td>
+                    <td style={s.td}>
+                      <button onClick={() => setPayingTransaction(d)} style={s.payBtn}>
+                        <CreditCard size={13} />
+                        Pagar
+                      </button>
+                    </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
         </div>
+      )}
+
+      {payingTransaction && (
+        <PaymentModal
+          transaction={payingTransaction}
+          onClose={() => setPayingTransaction(null)}
+          onPaid={() => { reloadDebts(); setPayingTransaction(null); }}
+        />
       )}
 
       <div style={s.section}>
@@ -204,4 +234,5 @@ const s = {
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   actions: { display: 'flex', gap: '1rem', flexWrap: 'wrap' },
   actionBtn: { padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#3b82f6', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
+  payBtn: { display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' },
 };

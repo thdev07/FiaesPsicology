@@ -1,4 +1,5 @@
 import supabase from '../../db.js';
+import { createMercadoPagoPayment, getMercadoPagoPaymentStatus } from '../../services/mercadopago.service.js';
 
 export const listTransactionsService = () =>
   supabase
@@ -108,6 +109,97 @@ export async function autoCreateFromAppointmentService(appointmentId) {
   }
 
   return { data: transaction, error };
+}
+
+export async function createPaymentService(transactionId, userEmail) {
+  // Verifica se a transação pertence ao paciente
+  const { data: patient } = await supabase
+    .from('patients')
+    .select('id, nome, email')
+    .eq('email', userEmail)
+    .maybeSingle();
+
+  if (!patient) throw { status: 403, message: 'Paciente não encontrado' };
+
+  const { data: transaction, error } = await supabase
+    .from('transactions')
+    .select('*, appointments(data, hora, paciente_id, users(nome))')
+    .eq('id', transactionId)
+    .eq('tipo', 'receita')
+    .single();
+
+  if (error || !transaction) throw { status: 404, message: 'Transação não encontrada' };
+  if (transaction.appointments?.paciente_id !== patient.id) throw { status: 403, message: 'Acesso negado' };
+  if (transaction.status_pagamento === 'pago') throw { status: 400, message: 'Esta transação já foi paga' };
+
+  const description = transaction.categoria ?? 'Consulta FiaesPsychology';
+  const amount = Number(transaction.valor);
+  if (amount <= 0) throw { status: 400, message: 'Valor inválido para pagamento' };
+
+  const mpData = await createMercadoPagoPayment({
+    transactionId,
+    amount,
+    description,
+    patientEmail: patient.email,
+    patientName: patient.nome,
+  });
+
+  // Salva o payment_id e URL na transação para referência futura
+  await supabase
+    .from('transactions')
+    .update({
+      payment_id: mpData.pixPaymentId,
+      payment_url: mpData.checkout_url,
+    })
+    .eq('id', transactionId);
+
+  return mpData;
+}
+
+export async function handleWebhookService(body) {
+  // MP envia { type: 'payment', data: { id: '...' } }
+  const paymentId = body?.data?.id;
+  if (!body?.type === 'payment' || !paymentId) return;
+
+  const status = await getMercadoPagoPaymentStatus(paymentId);
+  if (status !== 'approved') return;
+
+  // Encontra transação pelo payment_id
+  const { data: transaction } = await supabase
+    .from('transactions')
+    .select('id, consulta_id')
+    .eq('payment_id', String(paymentId))
+    .maybeSingle();
+
+  if (!transaction || transaction.status_pagamento === 'pago') return;
+
+  await supabase
+    .from('transactions')
+    .update({ status_pagamento: 'pago' })
+    .eq('id', transaction.id);
+
+  return transaction;
+}
+
+export async function getPaymentStatusService(transactionId, userEmail) {
+  const { data: patient } = await supabase
+    .from('patients')
+    .select('id')
+    .eq('email', userEmail)
+    .maybeSingle();
+
+  if (!patient) throw { status: 403, message: 'Paciente não encontrado' };
+
+  const { data: transaction } = await supabase
+    .from('transactions')
+    .select('status_pagamento, payment_id, appointments(paciente_id)')
+    .eq('id', transactionId)
+    .single();
+
+  if (!transaction) throw { status: 404, message: 'Transação não encontrada' };
+  if (transaction.appointments?.paciente_id !== patient.id) throw { status: 403, message: 'Acesso negado' };
+
+  return { status_pagamento: transaction.status_pagamento };
 }
 
 export async function getMyDebtsService(userEmail) {

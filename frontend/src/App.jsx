@@ -1,5 +1,6 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider } from './contexts/AuthContext';
+import { ToastProvider } from './contexts/ToastContext';
 import { ProtectedRoute } from './routes/ProtectedRoute';
 import Layout from './components/layout/Layout';
 
@@ -23,6 +24,7 @@ import PatientAppointments from './pages/patient/Appointments';
 import PatientDocuments from './pages/patient/Documents';
 import PatientProfile from './pages/patient/Profile';
 import NovoAgendamento from './pages/patient/NovoAgendamento';
+import PaymentSuccess from './pages/patient/PaymentSuccess';
 import LandingPage from './pages/LandingPage';
 
 function Unauthorized() {
@@ -48,6 +50,7 @@ export default function App() {
   return (
     <BrowserRouter>
       <AuthProvider>
+        <ToastProvider>
         <Routes>
           {/* Rotas públicas */}
           <Route path="/login" element={<Login />} />
@@ -99,11 +102,13 @@ export default function App() {
             <Route path="/paciente/documentos" element={<PatientDocuments />} />
             <Route path="/paciente/perfil" element={<PatientProfile />} />
             <Route path="/paciente/novo-agendamento" element={<NovoAgendamento />} />
+            <Route path="/paciente/pagamento/sucesso" element={<PaymentSuccess />} />
           </Route>
 
           <Route path="/" element={<LandingPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
+        </ToastProvider>
       </AuthProvider>
     </BrowserRouter>
   );

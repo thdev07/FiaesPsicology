@@ -49,6 +49,47 @@ export async function sendCancellationEmail({ to, patientName, date, time, psych
   });
 }
 
+export async function sendPaymentConfirmationEmail({ to, patientName, psychologistName, date, time, amount }) {
+  if (!to) return;
+  const formatted = Number(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
+  return client().emails.send({
+    from: FROM,
+    to,
+    subject: 'Pagamento confirmado — FiaesPsychology',
+    html: `
+      <p>Olá, <strong>${patientName}</strong>!</p>
+      <p>Recebemos seu pagamento com sucesso. 🎉</p>
+      <table style="border-collapse:collapse;margin:16px 0">
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Consulta</td><td><strong>${fmtDate(date)} às ${time?.slice(0, 5)}</strong></td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Psicólogo(a)</td><td><strong>${psychologistName}</strong></td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Valor pago</td><td><strong>${formatted}</strong></td></tr>
+      </table>
+      <p style="color:#64748b;font-size:13px">Guarde este e-mail como comprovante.</p>
+      <p style="color:#64748b;font-size:13px">— Equipe FiaesPsychology</p>
+    `,
+  });
+}
+
+export async function sendRescheduleNotificationEmail({ to, adminName, patientName, psychologistName, oldDate, oldTime, newDate, newTime }) {
+  if (!to) return;
+  return client().emails.send({
+    from: FROM,
+    to,
+    subject: `Reagendamento solicitado — ${patientName}`,
+    html: `
+      <p>Olá${adminName ? `, <strong>${adminName}</strong>` : ''}!</p>
+      <p>O paciente <strong>${patientName}</strong> solicitou reagendamento da consulta.</p>
+      <table style="border-collapse:collapse;margin:16px 0">
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Psicólogo(a)</td><td><strong>${psychologistName}</strong></td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Data anterior</td><td>${fmtDate(oldDate)} às ${oldTime?.slice(0,5)}</td></tr>
+        <tr><td style="padding:4px 12px 4px 0;color:#64748b">Nova data solicitada</td><td><strong>${fmtDate(newDate)} às ${newTime?.slice(0,5)}</strong></td></tr>
+      </table>
+      <p style="color:#64748b;font-size:13px">Acesse o sistema para confirmar o novo horário.</p>
+      <p style="color:#64748b;font-size:13px">— FiaesPsychology</p>
+    `,
+  });
+}
+
 export async function sendReminderEmail({ to, patientName, psychologistName, date, time, roomName }) {
   if (!to) return;
   return client().emails.send({
