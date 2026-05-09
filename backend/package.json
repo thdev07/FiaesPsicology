@@ -16,7 +16,7 @@
     "googleapis": "^171.4.0",
     "mercadopago": "^2.12.0",
     "node-cron": "^4.2.1",
-    "resend": "^6.12.3"
+    "nodemailer": "^8.0.7"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"

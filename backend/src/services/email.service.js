@@ -1,10 +1,18 @@
-import { Resend } from 'resend';
+import nodemailer from 'nodemailer';
 
-const FROM = process.env.RESEND_FROM ?? 'no-reply@fiaespsychology.com.br';
-
-function client() {
-  return new Resend(process.env.RESEND_API_KEY);
+function transporter() {
+  return nodemailer.createTransport({
+    host: 'smtp-relay.brevo.com',
+    port: 587,
+    secure: false,
+    auth: {
+      user: process.env.GMAIL_USER,
+      pass: process.env.GMAIL_APP_PASSWORD,
+    },
+  });
 }
+
+const FROM = `FiaesPsychology <${process.env.GMAIL_USER}>`;
 
 function fmtDate(date) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', {
@@ -14,9 +22,8 @@ function fmtDate(date) {
 
 export async function sendConfirmationEmail({ to, patientName, psychologistName, date, time, roomName }) {
   if (!to) return;
-  return client().emails.send({
-    from: FROM,
-    to,
+  return transporter().sendMail({
+    from: FROM, to,
     subject: 'Consulta confirmada — FiaesPsychology',
     html: `
       <p>Olá, <strong>${patientName}</strong>!</p>
@@ -35,9 +42,8 @@ export async function sendConfirmationEmail({ to, patientName, psychologistName,
 
 export async function sendCancellationEmail({ to, patientName, date, time, psychologistName }) {
   if (!to) return;
-  return client().emails.send({
-    from: FROM,
-    to,
+  return transporter().sendMail({
+    from: FROM, to,
     subject: 'Consulta cancelada — FiaesPsychology',
     html: `
       <p>Olá, <strong>${patientName}</strong>!</p>
@@ -52,9 +58,8 @@ export async function sendCancellationEmail({ to, patientName, date, time, psych
 export async function sendPaymentConfirmationEmail({ to, patientName, psychologistName, date, time, amount }) {
   if (!to) return;
   const formatted = Number(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
-  return client().emails.send({
-    from: FROM,
-    to,
+  return transporter().sendMail({
+    from: FROM, to,
     subject: 'Pagamento confirmado — FiaesPsychology',
     html: `
       <p>Olá, <strong>${patientName}</strong>!</p>
@@ -72,9 +77,8 @@ export async function sendPaymentConfirmationEmail({ to, patientName, psychologi
 
 export async function sendRescheduleNotificationEmail({ to, adminName, patientName, psychologistName, oldDate, oldTime, newDate, newTime }) {
   if (!to) return;
-  return client().emails.send({
-    from: FROM,
-    to,
+  return transporter().sendMail({
+    from: FROM, to,
     subject: `Reagendamento solicitado — ${patientName}`,
     html: `
       <p>Olá${adminName ? `, <strong>${adminName}</strong>` : ''}!</p>
@@ -92,9 +96,8 @@ export async function sendRescheduleNotificationEmail({ to, adminName, patientNa
 
 export async function sendReminderEmail({ to, patientName, psychologistName, date, time, roomName }) {
   if (!to) return;
-  return client().emails.send({
-    from: FROM,
-    to,
+  return transporter().sendMail({
+    from: FROM, to,
     subject: 'Lembrete de consulta — FiaesPsychology',
     html: `
       <p>Olá, <strong>${patientName}</strong>!</p>
