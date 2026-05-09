@@ -41,7 +41,12 @@ export const updateUserService = (id, data) =>
   supabase.from('users').update(data).eq('id', id).select().single();
 
 export async function deleteUserService(id) {
+  // Verifica FK antes de deletar do Auth para evitar estado inconsistente
+  const { error: dbError } = await supabase.from('users').delete().eq('id', id);
+  if (dbError) throw dbError;
+
   const { error: authError } = await supabase.auth.admin.deleteUser(id);
-  if (authError) throw authError;
-  return supabase.from('users').delete().eq('id', id);
+  if (authError) console.error('[deleteUser] Auth delete failed after DB delete:', authError.message);
+
+  return { error: null };
 }
