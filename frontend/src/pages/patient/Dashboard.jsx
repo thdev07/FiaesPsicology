@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText, CreditCard } from 'lucide-react';
+import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText, CreditCard, CalendarPlus, ArrowRight } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
 import { useToast } from '../../contexts/ToastContext';
@@ -77,6 +77,7 @@ export default function PatientDashboard() {
   const nextSession = upcoming[0] ?? null;
   const pendingDebts = debts.filter((d) => d.status_pagamento === 'pendente');
   const totalPending = pendingDebts.reduce((sum, d) => sum + Number(d.valor), 0);
+  const nome = user?.user_metadata?.nome ?? 'Paciente';
 
   function reloadDebts() {
     api.get('/financial/my-debts').then((d) => setDebts(Array.isArray(d) ? d : [])).catch(() => {});
@@ -84,6 +85,9 @@ export default function PatientDashboard() {
 
   if (loading) return (
     <div>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <div style={{ height: '1.5rem', background: '#e5e7eb', borderRadius: 6, width: '200px', marginBottom: '0.5rem', animation: 'skeleton-pulse 1.5s ease-in-out infinite' }} />
+      </div>
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' }}>
         {[...Array(4)].map((_, i) => <SkeletonCard key={i} />)}
       </div>
@@ -93,8 +97,30 @@ export default function PatientDashboard() {
 
   return (
     <motion.div {...pageAnim}>
-      <h1 style={s.title}>Olá, {user?.user_metadata?.nome ?? 'Paciente'}</h1>
-      <p style={s.subtitle}>Acompanhe suas consultas e situação financeira.</p>
+      <div style={{ marginBottom: '1.5rem' }}>
+        <h1 style={s.title}>Olá, {nome.split(' ')[0]}</h1>
+        <p style={s.subtitle}>Acompanhe suas consultas e situação financeira.</p>
+      </div>
+
+      {/* Alerta de débitos */}
+      {totalPending > 0 && (
+        <motion.div
+          initial={{ opacity: 0, y: -8 }}
+          animate={{ opacity: 1, y: 0 }}
+          style={s.debtBanner}
+        >
+          <Wallet size={16} color="#92400e" />
+          <span style={{ fontSize: '0.875rem', color: '#92400e', fontWeight: 500 }}>
+            Você tem <strong>{fmt(totalPending)}</strong> em pagamentos pendentes.
+          </span>
+          <button
+            onClick={() => document.getElementById('debts-section')?.scrollIntoView({ behavior: 'smooth' })}
+            style={s.bannerBtn}
+          >
+            Ver cobranças →
+          </button>
+        </motion.div>
+      )}
 
       <div style={s.cards}>
         <StatCard label="Próxima sessão" color="#3b82f6" Icon={CalendarDays}>
@@ -106,7 +132,7 @@ export default function PatientDashboard() {
               <p style={s.cardSub}>{nextSession.hora?.slice(0, 5)} — {nextSession.users?.nome ?? '—'}</p>
             </>
           ) : (
-            <p style={s.cardValue}>Nenhuma agendada</p>
+            <p style={{ ...s.cardValue, fontSize: '0.9rem', color: '#94a3b8' }}>Nenhuma agendada</p>
           )}
         </StatCard>
 
@@ -128,6 +154,30 @@ export default function PatientDashboard() {
         </StatCard>
       </div>
 
+      {/* CTA quando não há próxima sessão */}
+      {!nextSession && (
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.2 }}
+          style={s.ctaBanner}
+        >
+          <div>
+            <p style={{ fontWeight: 700, color: '#1e40af', margin: '0 0 0.25rem', fontSize: '0.95rem' }}>
+              Nenhuma consulta agendada
+            </p>
+            <p style={{ color: '#3b82f6', margin: 0, fontSize: '0.825rem' }}>
+              Agende sua próxima sessão com nossos psicólogos.
+            </p>
+          </div>
+          <button onClick={() => navigate('/paciente/novo-agendamento')} style={s.ctaBtn}>
+            <CalendarPlus size={15} />
+            Agendar consulta
+          </button>
+        </motion.div>
+      )}
+
+      {/* Próxima consulta detalhada */}
       {nextSession && (
         <div style={s.section}>
           <h2 style={s.sectionTitle}>Próxima consulta</h2>
@@ -141,21 +191,22 @@ export default function PatientDashboard() {
               </div>
               <p style={s.nextInfo}><Clock size={13} color="#94a3b8" style={{ verticalAlign: 'middle', marginRight: 4 }} />Horário: <strong>{nextSession.hora?.slice(0, 5)}</strong></p>
               <p style={s.nextInfo}>Psicólogo: <strong>{nextSession.users?.nome ?? '—'}</strong></p>
-              <p style={s.nextInfo}>Sala: <strong>{nextSession.rooms?.nome ?? '—'}</strong></p>
+              {nextSession.rooms?.nome && <p style={s.nextInfo}>Sala: <strong>{nextSession.rooms.nome}</strong></p>}
             </div>
             <Badge label={nextSession.status} colors={STATUS_COLORS[nextSession.status] ?? {}} />
           </div>
         </div>
       )}
 
+      {/* Cobranças pendentes */}
       {pendingDebts.length > 0 && (
-        <div style={s.section}>
+        <div style={s.section} id="debts-section">
           <h2 style={s.sectionTitle}>Cobranças pendentes</h2>
           <div style={s.tableWrap}>
             <table style={s.table}>
               <thead>
                 <tr>
-                  {['Data', 'Psicólogo', 'Descrição', 'Valor', 'Status', ''].map((h) => (
+                  {['Data', 'Psicólogo', 'Descrição', 'Valor', ''].map((h) => (
                     <th key={h} style={s.th}>{h}</th>
                   ))}
                 </tr>
@@ -172,12 +223,9 @@ export default function PatientDashboard() {
                     <td style={s.td}>{d.categoria}</td>
                     <td style={s.td}><strong>{fmt(d.valor)}</strong></td>
                     <td style={s.td}>
-                      <Badge label={d.status_pagamento} colors={PGTO_COLORS[d.status_pagamento] ?? {}} />
-                    </td>
-                    <td style={s.td}>
                       <button onClick={() => setPayingTransaction(d)} style={s.payBtn}>
                         <CreditCard size={13} />
-                        Pagar
+                        Pagar agora
                       </button>
                     </td>
                   </tr>
@@ -196,12 +244,18 @@ export default function PatientDashboard() {
         />
       )}
 
+      {/* Acesso rápido */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Acesso rápido</h2>
         <div style={s.actions}>
+          <button onClick={() => navigate('/paciente/novo-agendamento')} style={s.actionPrimary}>
+            <CalendarPlus size={15} />
+            Solicitar consulta
+          </button>
           <button onClick={() => navigate('/paciente/agendamentos')} style={s.actionBtn}>
             <CalendarDays size={15} />
-            Ver histórico de consultas
+            Ver todas as consultas
+            <ArrowRight size={13} />
           </button>
           <button onClick={() => navigate('/paciente/documentos')} style={s.actionBtn}>
             <FileText size={15} />
@@ -215,24 +269,58 @@ export default function PatientDashboard() {
 
 const s = {
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: '0 0 0.2rem' },
-  subtitle: { color: '#64748b', margin: '0 0 1.5rem', fontSize: '0.9rem' },
-  cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '2rem' },
-  card: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
+  subtitle: { color: '#64748b', margin: 0, fontSize: '0.9rem' },
+  debtBanner: {
+    display: 'flex', alignItems: 'center', gap: '0.75rem',
+    background: '#fef3c7', border: '1px solid #fde68a',
+    borderRadius: '8px', padding: '0.75rem 1rem',
+    marginBottom: '1.25rem', flexWrap: 'wrap',
+  },
+  bannerBtn: {
+    marginLeft: 'auto', background: '#f59e0b', color: '#fff', border: 'none',
+    borderRadius: '6px', padding: '0.3rem 0.75rem', fontSize: '0.8rem',
+    fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit',
+  },
+  ctaBanner: {
+    display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+    background: 'linear-gradient(135deg, #eff6ff, #dbeafe)',
+    border: '1px solid #bfdbfe', borderRadius: '10px',
+    padding: '1rem 1.25rem', marginBottom: '1.5rem', gap: '1rem', flexWrap: 'wrap',
+  },
+  ctaBtn: {
+    background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '8px',
+    padding: '0.6rem 1.25rem', fontWeight: 700, fontSize: '0.875rem',
+    cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '0.4rem',
+    fontFamily: 'inherit', flexShrink: 0,
+  },
+  cards: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' },
+  card: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   cardLabel: { fontSize: '0.75rem', fontWeight: 600, color: '#94a3b8', textTransform: 'uppercase', margin: 0, letterSpacing: '0.03em' },
   cardValue: { fontSize: '1.4rem', fontWeight: 700, color: '#1e293b', margin: '0.25rem 0 0.15rem' },
   cardSub: { fontSize: '0.78rem', color: '#64748b', margin: 0 },
   section: { marginBottom: '2rem' },
-  sectionTitle: { fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.75rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
-  nextCard: { background: '#fff', borderRadius: '8px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' },
+  sectionTitle: { fontSize: '1rem', fontWeight: 700, color: '#1e293b', marginBottom: '0.75rem' },
+  nextCard: { background: '#fff', borderRadius: '8px', padding: '1.5rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '1rem' },
   nextDate: { fontSize: '0.95rem', fontWeight: 600, color: '#1e293b', margin: 0, textTransform: 'capitalize' },
   nextInfo: { fontSize: '0.875rem', color: '#475569', margin: '0.2rem 0' },
-  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
+  badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600, flexShrink: 0 },
   tableWrap: { overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
-  actions: { display: 'flex', gap: '1rem', flexWrap: 'wrap' },
-  actionBtn: { padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0', background: '#fff', color: '#3b82f6', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
-  payBtn: { display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.35rem 0.75rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer' },
+  actions: { display: 'flex', gap: '0.75rem', flexWrap: 'wrap' },
+  actionPrimary: {
+    padding: '0.6rem 1.25rem', borderRadius: '8px', border: 'none',
+    background: '#3b82f6', color: '#fff', fontWeight: 700, cursor: 'pointer',
+    fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
+    fontFamily: 'inherit',
+  },
+  actionBtn: {
+    padding: '0.6rem 1.25rem', borderRadius: '8px', border: '1px solid #e2e8f0',
+    background: '#fff', color: '#3b82f6', fontWeight: 600, cursor: 'pointer',
+    fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem',
+    fontFamily: 'inherit',
+  },
+  payBtn: { display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#3b82f6', color: '#fff', border: 'none', borderRadius: '6px', padding: '0.4rem 0.85rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
 };

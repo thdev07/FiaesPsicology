@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { CalendarDays, Plus, X, Search } from 'lucide-react';
+import { CalendarDays, Plus, X, Search, CheckCircle2, XCircle } from 'lucide-react';
 import { api } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
+import { SkeletonTable } from '../../components/ui/Skeleton';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
@@ -17,23 +19,50 @@ const EMPTY_FORM = {
 
 const STATUS_COLORS = {
   confirmado: { background: '#dcfce7', color: '#166534' },
-  pendente: { background: '#fef9c3', color: '#854d0e' },
-  cancelado: { background: '#fee2e2', color: '#991b1b' },
-  concluido: { background: '#ede9fe', color: '#5b21b6' },
+  pendente:   { background: '#fef9c3', color: '#854d0e' },
+  cancelado:  { background: '#fee2e2', color: '#991b1b' },
+  concluido:  { background: '#ede9fe', color: '#5b21b6' },
 };
 
+function ConfirmModal({ title, message, confirmLabel, danger = false, onConfirm, onCancel }) {
+  return (
+    <div style={overlay} onClick={(e) => e.target === e.currentTarget && onCancel()}>
+      <motion.div
+        style={modalBox}
+        initial={{ opacity: 0, scale: 0.97, y: 8 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        transition={{ duration: 0.18 }}
+      >
+        <h3 style={{ margin: '0 0 0.5rem', fontSize: '1rem', fontWeight: 700, color: '#111827' }}>{title}</h3>
+        <p style={{ margin: '0 0 1.5rem', fontSize: '0.875rem', color: '#6b7280', lineHeight: 1.5 }}>{message}</p>
+        <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+          <button onClick={onCancel} style={s.btnGhost}>Cancelar</button>
+          <button
+            onClick={onConfirm}
+            style={{ ...s.btnPrimary, background: danger ? '#dc2626' : '#3b82f6' }}
+          >
+            {confirmLabel}
+          </button>
+        </div>
+      </motion.div>
+    </div>
+  );
+}
+
 export default function Appointments() {
+  const { show: toast } = useToast();
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [psychologists, setPsychologists] = useState([]);
   const [rooms, setRooms] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState('');
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
   const [filterStatus, setFilterStatus] = useState('');
   const [search, setSearch] = useState('');
+  const [confirmTarget, setConfirmTarget] = useState(null);
+  const [cancelTarget, setCancelTarget] = useState(null);
 
   useEffect(() => {
     Promise.all([
@@ -50,7 +79,7 @@ export default function Appointments() {
       const data = await api.get('/appointments');
       setAppointments(data);
     } catch (err) {
-      setError(err?.error ?? 'Erro ao carregar agendamentos.');
+      toast(err?.error ?? 'Erro ao carregar agendamentos.', 'error');
     } finally {
       setLoading(false);
     }
@@ -59,35 +88,41 @@ export default function Appointments() {
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
     try {
       await api.post('/appointments', form);
       setShowModal(false);
       fetchAppointments();
+      toast('Agendamento criado com sucesso.', 'success');
     } catch (err) {
-      setError(err?.error ?? err?.message ?? 'Erro ao criar agendamento.');
+      toast(err?.error ?? err?.message ?? 'Erro ao criar agendamento.', 'error');
     } finally {
       setSaving(false);
     }
   }
 
-  async function handleConfirm(id) {
-    if (!confirm('Confirmar este agendamento? Isso irá gerar a cobrança para o paciente.')) return;
+  async function handleConfirm() {
+    if (!confirmTarget) return;
     try {
-      await api.put(`/appointments/${id}`, { status: 'confirmado' });
+      await api.put(`/appointments/${confirmTarget.id}`, { status: 'confirmado' });
+      toast('Agendamento confirmado! Cobrança gerada para o paciente.', 'success');
       fetchAppointments();
     } catch (err) {
-      setError(err?.error ?? 'Erro ao confirmar agendamento.');
+      toast(err?.error ?? 'Erro ao confirmar agendamento.', 'error');
+    } finally {
+      setConfirmTarget(null);
     }
   }
 
-  async function handleCancel(id) {
-    if (!confirm('Cancelar este agendamento?')) return;
+  async function handleCancel() {
+    if (!cancelTarget) return;
     try {
-      await api.patch(`/appointments/${id}/cancel`);
+      await api.patch(`/appointments/${cancelTarget.id}/cancel`);
+      toast('Agendamento cancelado.', 'info');
       fetchAppointments();
     } catch (err) {
-      setError(err?.error ?? 'Erro ao cancelar agendamento.');
+      toast(err?.error ?? 'Erro ao cancelar agendamento.', 'error');
+    } finally {
+      setCancelTarget(null);
     }
   }
 
@@ -102,24 +137,32 @@ export default function Appointments() {
   });
 
   const filterOptions = ['', 'confirmado', 'pendente', 'cancelado', 'concluido'];
+  const pendingCount = appointments.filter((a) => a.status === 'pendente').length;
 
   return (
     <motion.div {...pageAnim}>
       <div style={s.topbar}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <CalendarDays size={22} color="#3b82f6" />
-          <h1 style={s.title}>Agendamentos</h1>
+          <div>
+            <h1 style={s.title}>Agendamentos</h1>
+            {pendingCount > 0 && (
+              <p style={{ margin: 0, fontSize: '0.78rem', color: '#b45309' }}>
+                {pendingCount} aguardando confirmação
+              </p>
+            )}
+          </div>
         </div>
-        <button onClick={() => { setForm(EMPTY_FORM); setError(''); setShowModal(true); }} style={s.btnPrimary}>
+        <button onClick={() => { setForm(EMPTY_FORM); setShowModal(true); }} style={s.btnPrimary}>
           <Plus size={15} />
           Novo agendamento
         </button>
       </div>
 
-      <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', marginBottom: '0.75rem' }}>
+      <div style={s.searchWrap}>
         <Search size={15} color="#94a3b8" style={{ flexShrink: 0 }} />
         <input
-          style={{ border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' }}
+          style={s.searchInput}
           placeholder="Buscar por paciente, psicólogo ou sala..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
@@ -139,16 +182,28 @@ export default function Appointments() {
             }}
           >
             {st === '' ? 'Todos' : st.charAt(0).toUpperCase() + st.slice(1)}
+            {st === 'pendente' && pendingCount > 0 && (
+              <span style={{
+                marginLeft: '0.35rem',
+                background: filterStatus === 'pendente' ? 'rgba(255,255,255,0.3)' : '#fef3c7',
+                color: filterStatus === 'pendente' ? '#fff' : '#92400e',
+                borderRadius: '999px',
+                padding: '0 0.4rem',
+                fontSize: '0.7rem',
+                fontWeight: 700,
+              }}>{pendingCount}</span>
+            )}
           </button>
         ))}
       </div>
 
-      {error && <p style={s.error}>{error}</p>}
-
       {loading ? (
-        <p style={{ color: '#94a3b8' }}>Carregando...</p>
+        <SkeletonTable rows={6} cols={8} />
       ) : filtered.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>Nenhum agendamento encontrado.</p>
+        <div style={s.emptyState}>
+          <CalendarDays size={36} color="#e2e8f0" />
+          <p style={{ color: '#94a3b8', margin: '0.5rem 0 0' }}>Nenhum agendamento encontrado.</p>
+        </div>
       ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
@@ -161,29 +216,33 @@ export default function Appointments() {
             </thead>
             <tbody>
               {filtered.map((a) => (
-                <tr key={a.id} style={s.tr}>
+                <tr key={a.id} style={{ ...s.tr, background: a.status === 'pendente' ? '#fffbeb' : 'transparent' }}>
                   <td style={s.td}>{new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                   <td style={s.td}>{a.hora?.slice(0, 5)}</td>
-                  <td style={s.td}>{a.patients?.nome ?? '—'}</td>
+                  <td style={{ ...s.td, fontWeight: 500 }}>{a.patients?.nome ?? '—'}</td>
                   <td style={s.td}>{a.users?.nome ?? '—'}</td>
                   <td style={s.td}>{a.rooms?.nome ?? '—'}</td>
-                  <td style={s.td}>{a.tipo}</td>
+                  <td style={s.td}>{a.tipo === 'convenio' ? 'Convênio' : 'Particular'}</td>
                   <td style={s.td}>
                     <span style={{ ...s.badge, ...(STATUS_COLORS[a.status] ?? {}) }}>
                       {a.status}
                     </span>
                   </td>
-                  <td style={{ ...s.td, display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
-                    {a.status === 'pendente' && (
-                      <button onClick={() => handleConfirm(a.id)} style={s.btnConfirm}>
-                        Confirmar
-                      </button>
-                    )}
-                    {a.status !== 'cancelado' && a.status !== 'concluido' && (
-                      <button onClick={() => handleCancel(a.id)} style={s.btnDelete}>
-                        Cancelar
-                      </button>
-                    )}
+                  <td style={{ ...s.td }}>
+                    <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                      {a.status === 'pendente' && (
+                        <button onClick={() => setConfirmTarget(a)} style={s.btnConfirm}>
+                          <CheckCircle2 size={12} />
+                          Confirmar
+                        </button>
+                      )}
+                      {a.status !== 'cancelado' && a.status !== 'concluido' && (
+                        <button onClick={() => setCancelTarget(a)} style={s.btnCancel}>
+                          <XCircle size={12} />
+                          Cancelar
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -192,10 +251,11 @@ export default function Appointments() {
         </div>
       )}
 
+      {/* Modal novo agendamento */}
       {showModal && (
-        <div style={s.overlay}>
+        <div style={overlay}>
           <motion.div
-            style={s.modal}
+            style={{ ...modalBox, maxWidth: 500 }}
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.2 }}
@@ -240,10 +300,8 @@ export default function Appointments() {
                 <option value="convenio">Convênio</option>
               </select>
 
-              {error && <p style={s.error}>{error}</p>}
-
               <div style={s.modalActions}>
-                <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>Cancelar</button>
+                <button type="button" onClick={() => setShowModal(false)} style={s.btnGhost}>Cancelar</button>
                 <button type="submit" disabled={saving} style={s.btnPrimary}>
                   {saving ? 'Salvando...' : 'Agendar'}
                 </button>
@@ -252,28 +310,60 @@ export default function Appointments() {
           </motion.div>
         </div>
       )}
+
+      {confirmTarget && (
+        <ConfirmModal
+          title="Confirmar agendamento"
+          message={`Confirmar a consulta de ${confirmTarget.patients?.nome ?? 'paciente'} em ${new Date(confirmTarget.data + 'T00:00:00').toLocaleDateString('pt-BR')} às ${confirmTarget.hora?.slice(0, 5)}? Isso irá gerar uma cobrança para o paciente.`}
+          confirmLabel="Confirmar"
+          onConfirm={handleConfirm}
+          onCancel={() => setConfirmTarget(null)}
+        />
+      )}
+
+      {cancelTarget && (
+        <ConfirmModal
+          title="Cancelar agendamento"
+          message={`Deseja cancelar a consulta de ${cancelTarget.patients?.nome ?? 'paciente'} em ${new Date(cancelTarget.data + 'T00:00:00').toLocaleDateString('pt-BR')} às ${cancelTarget.hora?.slice(0, 5)}?`}
+          confirmLabel="Sim, cancelar"
+          danger
+          onConfirm={handleCancel}
+          onCancel={() => setCancelTarget(null)}
+        />
+      )}
     </motion.div>
   );
 }
 
+const overlay = {
+  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center',
+  zIndex: 50, padding: '1rem',
+};
+const modalBox = {
+  background: '#fff', borderRadius: '12px', padding: '1.75rem',
+  width: '100%', boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+  maxHeight: '90vh', overflowY: 'auto',
+};
+
 const s = {
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
+  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '1rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', marginBottom: '0.75rem' },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
   filters: { display: 'flex', gap: '0.5rem', marginBottom: '1rem', flexWrap: 'wrap' },
-  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.825rem', fontWeight: 500, transition: 'all 0.15s' },
-  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
+  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.825rem', fontWeight: 500, transition: 'all 0.15s', display: 'flex', alignItems: 'center' },
+  emptyState: { padding: '3rem 1rem', textAlign: 'center', background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
   tableWrap: { overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
-  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
-  btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
-  btnConfirm: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.8rem', color: '#16a34a', fontWeight: 600 },
-  btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '500px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem' },
+  btnGhost: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
+  btnConfirm: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #bbf7d0', background: '#f0fdf4', cursor: 'pointer', fontSize: '0.78rem', color: '#16a34a', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' },
+  btnCancel: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.78rem', color: '#dc2626', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.3rem' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
   modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },

@@ -1,9 +1,9 @@
-import { NavLink } from 'react-router-dom';
+import { NavLink, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../contexts/AuthContext';
 import {
   LayoutDashboard, Users, DoorOpen, CalendarDays, UserCog,
   DollarSign, Shield, BarChart2, Calendar, FileText,
-  CalendarPlus, Receipt, UserCircle, BrainCircuit, X,
+  CalendarPlus, Receipt, UserCircle, BrainCircuit, X, LogOut,
 } from 'lucide-react';
 
 const ICON_MAP = {
@@ -26,10 +26,10 @@ const MENUS = {
   admin: [
     { to: '/admin', label: 'Dashboard', end: true },
     { to: '/admin/pacientes', label: 'Pacientes' },
-    { to: '/admin/salas', label: 'Salas' },
     { to: '/admin/agendamentos', label: 'Agendamentos' },
     { to: '/admin/usuarios', label: 'Usuários' },
     { to: '/admin/financeiro', label: 'Financeiro' },
+    { to: '/admin/salas', label: 'Salas' },
     { to: '/admin/convenios', label: 'Convênios' },
     { to: '/admin/relatorios', label: 'Relatórios' },
   ],
@@ -48,9 +48,25 @@ const MENUS = {
   ],
 };
 
+const ROLE_LABEL = { admin: 'Administrador', psicologo: 'Psicólogo', paciente: 'Paciente' };
+
+function getInitials(nome) {
+  if (!nome) return '?';
+  const parts = nome.trim().split(' ');
+  if (parts.length === 1) return parts[0][0].toUpperCase();
+  return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+}
+
 export default function Sidebar({ mobile = false, open = false, onClose = () => {} }) {
-  const { role } = useAuth();
+  const { role, user, signOut } = useAuth();
+  const navigate = useNavigate();
   const items = MENUS[role] ?? [];
+  const nome = user?.user_metadata?.nome ?? user?.email ?? '';
+
+  async function handleLogout() {
+    await signOut();
+    navigate('/login');
+  }
 
   const asideStyle = mobile
     ? {
@@ -76,11 +92,7 @@ export default function Sidebar({ mobile = false, open = false, onClose = () => 
         {mobile && (
           <button
             onClick={onClose}
-            style={{
-              marginLeft: 'auto', background: 'none', border: 'none',
-              cursor: 'pointer', color: '#64748b', display: 'flex',
-              padding: '0.2rem', borderRadius: 6,
-            }}
+            style={{ marginLeft: 'auto', background: 'none', border: 'none', cursor: 'pointer', display: 'flex', padding: '0.2rem', borderRadius: 6 }}
             aria-label="Fechar menu"
           >
             <X size={20} color="#94a3b8" />
@@ -105,10 +117,7 @@ export default function Sidebar({ mobile = false, open = false, onClose = () => 
             >
               {({ isActive }) => (
                 <>
-                  <Icon
-                    size={16}
-                    style={{ flexShrink: 0, color: isActive ? '#fff' : '#64748b' }}
-                  />
+                  <Icon size={16} style={{ flexShrink: 0, color: isActive ? '#fff' : '#64748b' }} />
                   <span style={{ fontSize: '0.875rem' }}>{label}</span>
                 </>
               )}
@@ -116,6 +125,20 @@ export default function Sidebar({ mobile = false, open = false, onClose = () => 
           );
         })}
       </nav>
+
+      {/* User footer */}
+      <div style={styles.footer}>
+        <div style={styles.footerUser}>
+          <div style={styles.avatar}>{getInitials(nome)}</div>
+          <div style={styles.footerInfo}>
+            <span style={styles.footerName}>{nome || 'Usuário'}</span>
+            <span style={styles.footerRole}>{ROLE_LABEL[role] ?? role}</span>
+          </div>
+        </div>
+        <button onClick={handleLogout} style={styles.logoutBtn} title="Sair">
+          <LogOut size={15} color="#64748b" />
+        </button>
+      </div>
     </aside>
   );
 }
@@ -135,6 +158,7 @@ const styles = {
     alignItems: 'center',
     gap: '0.6rem',
     borderBottom: '1px solid #1e293b',
+    flexShrink: 0,
   },
   logoIcon: {
     width: 32,
@@ -169,5 +193,63 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     gap: '0.6rem',
+  },
+  footer: {
+    padding: '0.75rem',
+    borderTop: '1px solid #1e293b',
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    flexShrink: 0,
+  },
+  footerUser: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.6rem',
+    flex: 1,
+    minWidth: 0,
+  },
+  avatar: {
+    width: 30,
+    height: 30,
+    borderRadius: '50%',
+    background: 'linear-gradient(135deg, #3b82f6, #6366f1)',
+    color: '#fff',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.72rem',
+    fontWeight: 700,
+    flexShrink: 0,
+  },
+  footerInfo: {
+    display: 'flex',
+    flexDirection: 'column',
+    minWidth: 0,
+  },
+  footerName: {
+    fontSize: '0.78rem',
+    fontWeight: 600,
+    color: '#e2e8f0',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
+    whiteSpace: 'nowrap',
+  },
+  footerRole: {
+    fontSize: '0.68rem',
+    color: '#64748b',
+  },
+  logoutBtn: {
+    width: 30,
+    height: 30,
+    borderRadius: 6,
+    border: '1px solid #1e293b',
+    background: 'transparent',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    cursor: 'pointer',
+    flexShrink: 0,
+    transition: 'background 0.2s',
   },
 };

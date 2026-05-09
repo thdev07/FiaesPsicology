@@ -1,7 +1,9 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { DollarSign, Plus, X, TrendingUp, TrendingDown, Wallet } from 'lucide-react';
+import { DollarSign, Plus, X, TrendingUp, TrendingDown, Wallet, Search } from 'lucide-react';
 import { api } from '../../services/api';
+import { useToast } from '../../contexts/ToastContext';
+import { SkeletonTable } from '../../components/ui/Skeleton';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { tipo: 'receita', categoria: '', valor: '', status_pagamento: 'pendente', consulta_id: '' };
@@ -12,8 +14,8 @@ const TIPO_COLORS = {
 };
 
 const PGTO_COLORS = {
-  pago: { background: '#dcfce7', color: '#166534' },
-  pendente: { background: '#fef9c3', color: '#854d0e' },
+  pago:      { background: '#dcfce7', color: '#166534' },
+  pendente:  { background: '#fef9c3', color: '#854d0e' },
   cancelado: { background: '#f1f5f9', color: '#64748b' },
 };
 
@@ -22,6 +24,7 @@ function fmt(value) {
 }
 
 export default function Financial() {
+  const { show: toast } = useToast();
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState({ receitas: 0, despesas: 0, saldo: 0 });
   const [loading, setLoading] = useState(true);
@@ -29,8 +32,8 @@ export default function Financial() {
   const [editing, setEditing] = useState(null);
   const [form, setForm] = useState(EMPTY_FORM);
   const [saving, setSaving] = useState(false);
-  const [error, setError] = useState('');
   const [filterTipo, setFilterTipo] = useState('');
+  const [search, setSearch] = useState('');
 
   const fetchAll = useCallback(async () => {
     setLoading(true);
@@ -42,18 +45,17 @@ export default function Financial() {
       setTransactions(Array.isArray(txs) ? txs : []);
       setSummary(sum ?? { receitas: 0, despesas: 0, saldo: 0 });
     } catch (err) {
-      setError(err?.error ?? 'Erro ao carregar dados financeiros.');
+      toast(err?.error ?? 'Erro ao carregar dados financeiros.', 'error');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => { fetchAll(); }, [fetchAll]);
 
   function openCreate() {
     setEditing(null);
     setForm(EMPTY_FORM);
-    setError('');
     setShowModal(true);
   }
 
@@ -66,29 +68,25 @@ export default function Financial() {
       status_pagamento: tx.status_pagamento,
       consulta_id: tx.consulta_id ?? '',
     });
-    setError('');
     setShowModal(true);
   }
 
   async function handleSave(e) {
     e.preventDefault();
     setSaving(true);
-    setError('');
     try {
-      const payload = {
-        ...form,
-        valor: Number(form.valor),
-        consulta_id: form.consulta_id || null,
-      };
+      const payload = { ...form, valor: Number(form.valor), consulta_id: form.consulta_id || null };
       if (editing) {
         await api.put(`/financial/${editing.id}`, payload);
+        toast('Transação atualizada.', 'success');
       } else {
         await api.post('/financial', payload);
+        toast('Transação criada.', 'success');
       }
       setShowModal(false);
       fetchAll();
     } catch (err) {
-      setError(err?.error ?? err?.message ?? 'Erro ao salvar transação.');
+      toast(err?.error ?? err?.message ?? 'Erro ao salvar transação.', 'error');
     } finally {
       setSaving(false);
     }
@@ -97,13 +95,21 @@ export default function Financial() {
   async function handleMarkPaid(tx) {
     try {
       await api.put(`/financial/${tx.id}`, { status_pagamento: 'pago' });
+      toast('Marcado como pago.', 'success');
       fetchAll();
     } catch (err) {
-      alert(err?.error ?? 'Erro ao marcar como pago.');
+      toast(err?.error ?? 'Erro ao marcar como pago.', 'error');
     }
   }
 
-  const filtered = filterTipo ? transactions.filter((t) => t.tipo === filterTipo) : transactions;
+  const q = search.toLowerCase();
+  const filtered = transactions.filter((t) => {
+    const matchTipo = !filterTipo || t.tipo === filterTipo;
+    const matchSearch = !q ||
+      t.categoria?.toLowerCase().includes(q) ||
+      t.appointments?.patients?.nome?.toLowerCase().includes(q);
+    return matchTipo && matchSearch;
+  });
 
   return (
     <motion.div {...pageAnim}>
@@ -118,53 +124,59 @@ export default function Financial() {
         </button>
       </div>
 
+      {/* Summary cards */}
       <div style={s.summaryGrid}>
-        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: '3px solid #16a34a' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <TrendingUp size={16} color="#16a34a" />
-            <p style={s.summaryLabel}>Receitas</p>
-          </div>
-          <p style={{ ...s.summaryValue, color: '#16a34a' }}>{fmt(summary.receitas)}</p>
-        </motion.div>
-        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: '3px solid #dc2626' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <TrendingDown size={16} color="#dc2626" />
-            <p style={s.summaryLabel}>Despesas</p>
-          </div>
-          <p style={{ ...s.summaryValue, color: '#dc2626' }}>{fmt(summary.despesas)}</p>
-        </motion.div>
-        <motion.div whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: `3px solid ${summary.saldo >= 0 ? '#3b82f6' : '#f59e0b'}` }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
-            <Wallet size={16} color={summary.saldo >= 0 ? '#3b82f6' : '#f59e0b'} />
-            <p style={s.summaryLabel}>Saldo</p>
-          </div>
-          <p style={{ ...s.summaryValue, color: summary.saldo >= 0 ? '#3b82f6' : '#f59e0b' }}>{fmt(summary.saldo)}</p>
-        </motion.div>
-      </div>
-
-      <div style={s.filters}>
-        {[['', 'Todos'], ['receita', 'Receitas'], ['despesa', 'Despesas']].map(([val, label]) => (
-          <button
-            key={val}
-            onClick={() => setFilterTipo(val)}
-            style={{
-              ...s.filterBtn,
-              background: filterTipo === val ? '#3b82f6' : '#fff',
-              color: filterTipo === val ? '#fff' : '#64748b',
-              borderColor: filterTipo === val ? '#3b82f6' : '#e2e8f0',
-            }}
-          >
-            {label}
-          </button>
+        {[
+          { label: 'Receitas', value: fmt(summary.receitas), color: '#16a34a', Icon: TrendingUp },
+          { label: 'Despesas', value: fmt(summary.despesas), color: '#dc2626', Icon: TrendingDown },
+          { label: 'Saldo', value: fmt(summary.saldo), color: summary.saldo >= 0 ? '#3b82f6' : '#f59e0b', Icon: Wallet },
+        ].map(({ label, value, color, Icon }) => (
+          <motion.div key={label} whileHover={{ y: -2 }} transition={{ duration: 0.15 }} style={{ ...s.summaryCard, borderTop: `3px solid ${color}` }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <Icon size={16} color={color} />
+              <p style={s.summaryLabel}>{label}</p>
+            </div>
+            <p style={{ ...s.summaryValue, color }}>{value}</p>
+          </motion.div>
         ))}
       </div>
 
-      {error && <p style={s.error}>{error}</p>}
+      {/* Search + filters */}
+      <div style={{ display: 'flex', gap: '0.75rem', marginBottom: '1rem', flexWrap: 'wrap' }}>
+        <div style={s.searchWrap}>
+          <Search size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
+          <input
+            style={s.searchInput}
+            placeholder="Buscar por categoria ou paciente..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {[['', 'Todos'], ['receita', 'Receitas'], ['despesa', 'Despesas']].map(([val, label]) => (
+            <button
+              key={val}
+              onClick={() => setFilterTipo(val)}
+              style={{
+                ...s.filterBtn,
+                background: filterTipo === val ? '#3b82f6' : '#fff',
+                color: filterTipo === val ? '#fff' : '#64748b',
+                borderColor: filterTipo === val ? '#3b82f6' : '#e2e8f0',
+              }}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {loading ? (
-        <p style={{ color: '#94a3b8' }}>Carregando...</p>
+        <SkeletonTable rows={6} cols={7} />
       ) : filtered.length === 0 ? (
-        <p style={{ color: '#94a3b8' }}>Nenhuma transação registrada.</p>
+        <div style={s.emptyState}>
+          <DollarSign size={36} color="#e2e8f0" />
+          <p style={{ color: '#94a3b8', margin: '0.5rem 0 0' }}>Nenhuma transação encontrada.</p>
+        </div>
       ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
@@ -188,22 +200,26 @@ export default function Financial() {
                       ? `${tx.appointments.patients?.nome ?? '?'} — ${new Date(tx.appointments.data + 'T00:00:00').toLocaleDateString('pt-BR')}`
                       : '—'}
                   </td>
-                  <td style={{ ...s.td, fontWeight: 600 }}>{fmt(tx.valor)}</td>
+                  <td style={{ ...s.td, fontWeight: 600, color: tx.tipo === 'receita' ? '#16a34a' : '#dc2626' }}>
+                    {fmt(tx.valor)}
+                  </td>
                   <td style={s.td}>
                     <span style={{ ...s.badge, ...PGTO_COLORS[tx.status_pagamento] }}>
                       {tx.status_pagamento}
                     </span>
                   </td>
-                  <td style={{ ...s.td, display: 'flex', gap: 6 }}>
-                    <button onClick={() => openEdit(tx)} style={s.btnSmall}>Editar</button>
-                    {tx.status_pagamento === 'pendente' && (
-                      <button
-                        onClick={() => handleMarkPaid(tx)}
-                        style={{ ...s.btnSmall, background: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0' }}
-                      >
-                        Pago
-                      </button>
-                    )}
+                  <td style={{ ...s.td }}>
+                    <div style={{ display: 'flex', gap: 6 }}>
+                      <button onClick={() => openEdit(tx)} style={s.btnSmall}>Editar</button>
+                      {tx.status_pagamento === 'pendente' && (
+                        <button
+                          onClick={() => handleMarkPaid(tx)}
+                          style={{ ...s.btnSmall, background: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0' }}
+                        >
+                          Pago
+                        </button>
+                      )}
+                    </div>
                   </td>
                 </tr>
               ))}
@@ -213,9 +229,9 @@ export default function Financial() {
       )}
 
       {showModal && (
-        <div style={s.overlay}>
+        <div style={overlay}>
           <motion.div
-            style={s.modal}
+            style={modalBox}
             initial={{ opacity: 0, y: 12, scale: 0.98 }}
             animate={{ opacity: 1, y: 0, scale: 1 }}
             transition={{ duration: 0.2 }}
@@ -258,8 +274,6 @@ export default function Financial() {
                 <option value="cancelado">Cancelado</option>
               </select>
 
-              {error && <p style={s.error}>{error}</p>}
-
               <div style={s.modalActions}>
                 <button type="button" onClick={() => setShowModal(false)} style={s.btnSecondary}>Cancelar</button>
                 <button type="submit" disabled={saving} style={s.btnPrimary}>
@@ -274,27 +288,35 @@ export default function Financial() {
   );
 }
 
+const overlay = {
+  position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)',
+  display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem',
+};
+const modalBox = {
+  background: '#fff', borderRadius: '12px', padding: '1.75rem',
+  width: '100%', maxWidth: '440px', boxShadow: '0 20px 60px rgba(0,0,0,0.18)',
+};
+
 const s = {
   topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.5rem' },
-  summaryCard: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', cursor: 'default' },
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem' },
+  summaryCard: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   summaryLabel: { fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 },
   summaryValue: { fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: 1 },
-  filters: { display: 'flex', gap: '0.5rem', marginBottom: '1rem' },
-  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.825rem', fontWeight: 500, transition: 'all 0.15s' },
-  error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
+  searchWrap: { flex: 1, minWidth: 200, display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem' },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
+  filterBtn: { padding: '0.35rem 0.9rem', borderRadius: '20px', border: '1px solid', cursor: 'pointer', fontSize: '0.825rem', fontWeight: 500, transition: 'all 0.15s', fontFamily: 'inherit' },
+  emptyState: { padding: '3rem 1rem', textAlign: 'center', background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.06)' },
   tableWrap: { overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse', background: '#fff', borderRadius: '8px', overflow: 'hidden', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { padding: '0.2rem 0.6rem', borderRadius: '20px', fontSize: '0.75rem', fontWeight: 600 },
-  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
-  btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
-  btnSmall: { padding: '0.25rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
-  modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '440px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' },
+  btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', fontFamily: 'inherit' },
+  btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'inherit' },
+  btnSmall: { padding: '0.25rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155', fontFamily: 'inherit' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },
   modalClose: { background: 'none', border: 'none', cursor: 'pointer', color: '#94a3b8', display: 'flex', alignItems: 'center', padding: '0.25rem' },
