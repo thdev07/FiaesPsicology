@@ -20,11 +20,11 @@ function useIsMobile() {
 }
 
 const FEATURES = [
-  { Icon: CalendarDays, color: '#3b82f6', bg: '#eff6ff', title: 'Agenda Inteligente', desc: 'Calendário interativo com arrastar e soltar. Visualize todos os agendamentos por psicólogo, sala ou status.' },
+  { Icon: CalendarDays, color: '#3b82f6', bg: '#eff6ff', title: 'Agenda Inteligente', desc: 'Calendário interativo com visualização de slots disponíveis em tempo real. Agendamentos por psicólogo, sala ou status.' },
   { Icon: FileText, color: '#6366f1', bg: '#eef2ff', title: 'Prontuários Digitais', desc: 'Editor rich text com salvamento automático. Dados criptografados com AES-256 para conformidade com LGPD.' },
-  { Icon: DollarSign, color: '#10b981', bg: '#ecfdf5', title: 'Gestão Financeira', desc: 'Receitas e repasses calculados automaticamente ao confirmar sessões. Dashboard com saldo em tempo real.' },
+  { Icon: DollarSign, color: '#10b981', bg: '#ecfdf5', title: 'Pagamento Online', desc: 'Pacientes pagam via PIX ou cartão diretamente pelo portal. Confirmação automática via webhook do Mercado Pago.' },
   { Icon: Users, color: '#f59e0b', bg: '#fffbeb', title: 'Gestão de Pacientes', desc: 'Ficha completa com histórico clínico, convênio, documentos e extrato financeiro em um só lugar.' },
-  { Icon: Bell, color: '#ef4444', bg: '#fff1f2', title: 'Notificações Automáticas', desc: 'E-mails de confirmação, cancelamento e lembretes 24h antes enviados automaticamente via Resend.' },
+  { Icon: Bell, color: '#ef4444', bg: '#fff1f2', title: 'Notificações Automáticas', desc: 'E-mails e mensagens WhatsApp de confirmação, cancelamento e lembretes 24h antes — enviados automaticamente.' },
   { Icon: Shield, color: '#8b5cf6', bg: '#f5f3ff', title: 'Convênios e Planos', desc: 'Cadastre planos com valor de consulta, taxa de reembolso e coparticipação. Vinculado ao paciente.' },
   { Icon: LayoutDashboard, color: '#0ea5e9', bg: '#f0f9ff', title: 'Dashboard em Tempo Real', desc: 'Métricas de sessões, pacientes, pendências e saldo atualizadas ao vivo para admin e psicólogos.' },
   { Icon: Lock, color: '#64748b', bg: '#f8fafc', title: 'Segurança de Dados', desc: 'Criptografia ponta a ponta nos prontuários. RBAC por perfil e autenticação segura via Supabase Auth.' },
@@ -45,20 +45,20 @@ const PROFILES = [
   {
     Icon: UserCheck, title: 'Paciente', color: '#10b981',
     desc: 'Portal dedicado para acompanhar sua jornada de cuidado com a clínica.',
-    items: ['Solicitar agendamentos', 'Histórico de consultas', 'Extrato de cobranças', 'Perfil e dados do convênio', 'Notificações automáticas'],
+    items: ['Solicitar e reagendar consultas', 'Histórico de consultas', 'Pagar online via PIX ou cartão', 'Perfil e dados do convênio', 'Notificações por e-mail e WhatsApp'],
   },
 ];
 
 const STEPS = [
   { Icon: ClipboardList, color: '#3b82f6', step: '01', title: 'Cadastre sua clínica', desc: 'Crie as salas, psicólogos, convênios e pacientes em poucos minutos.' },
-  { Icon: CalendarDays, color: '#6366f1', step: '02', title: 'Gerencie agendamentos', desc: 'Confirme sessões, e o sistema cria eventos no Calendar e envia e-mails automaticamente.' },
-  { Icon: TrendingUp, color: '#10b981', step: '03', title: 'Acompanhe os resultados', desc: 'Visualize receitas, prontuários e métricas no dashboard em tempo real.' },
+  { Icon: CalendarDays, color: '#6366f1', step: '02', title: 'Gerencie agendamentos', desc: 'Confirme sessões — o sistema notifica o paciente por e-mail e WhatsApp automaticamente.' },
+  { Icon: TrendingUp, color: '#10b981', step: '03', title: 'Receba online e acompanhe', desc: 'Pacientes pagam via PIX ou cartão. Visualize receitas e métricas no dashboard em tempo real.' },
 ];
 
 const STATS = [
   { value: '3', label: 'Perfis de acesso', Icon: Users, color: '#3b82f6' },
-  { value: '9+', label: 'Módulos integrados', Icon: LayoutDashboard, color: '#6366f1' },
-  { value: '100%', label: 'Digital e seguro', Icon: Lock, color: '#10b981' },
+  { value: '10+', label: 'Módulos integrados', Icon: LayoutDashboard, color: '#6366f1' },
+  { value: 'PIX', label: 'Pagamento online', Icon: DollarSign, color: '#10b981' },
   { value: 'AES-256', label: 'Criptografia', Icon: Shield, color: '#f59e0b' },
 ];
 
@@ -304,18 +304,18 @@ function FeaturesSection() {
 function ProfilesSection() {
   const mobile = useIsMobile();
   return (
-    <section id="perfis" style={{ background: 'linear-gradient(160deg,#060d1e 0%,#0c1932 50%,#0f1f3a 100%)', padding: mobile ? '4rem 1.5rem' : '6.5rem 1.5rem', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+    <section id="perfis" style={{ background: '#fff', padding: mobile ? '4rem 1.5rem' : '6.5rem 1.5rem', borderTop: '1px solid #f1f5f9' }}>
       <div style={{ maxWidth: 1200, margin: '0 auto' }}>
         <motion.div style={{ textAlign: 'center', marginBottom: '3.5rem' }}
           whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 16 }}
           transition={{ duration: 0.4 }} viewport={{ once: true }}>
-          <span style={{ display: 'inline-block', background: 'rgba(59,130,246,0.12)', color: '#60a5fa', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 20, marginBottom: '1.1rem', border: '1px solid rgba(59,130,246,0.2)' }}>
+          <span style={{ display: 'inline-block', background: '#eff6ff', color: '#2563eb', fontSize: '0.75rem', fontWeight: 800, letterSpacing: '0.07em', textTransform: 'uppercase', padding: '0.35rem 1rem', borderRadius: 20, marginBottom: '1.1rem', border: '1px solid #bfdbfe' }}>
             Perfis de acesso
           </span>
-          <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, color: '#fff', margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>
+          <h2 style={{ fontSize: 'clamp(1.6rem,3vw,2.4rem)', fontWeight: 900, color: '#0f172a', margin: '0 0 0.75rem', letterSpacing: '-0.03em' }}>
             Um sistema, três experiências
           </h2>
-          <p style={{ color: '#475569', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
+          <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
             Cada perfil tem painel personalizado com acesso apenas ao que é relevante para seu papel.
           </p>
         </motion.div>
@@ -325,17 +325,17 @@ function ProfilesSection() {
             <motion.div key={title}
               whileInView={{ opacity: 1, y: 0 }} initial={{ opacity: 0, y: 20 }}
               transition={{ duration: 0.4, delay: i * 0.1 }} viewport={{ once: true }}
-              whileHover={{ y: -6, boxShadow: `0 20px 50px ${color}20` }}
-              style={{ flex: 1, background: 'rgba(255,255,255,0.03)', borderRadius: 18, padding: '2rem', border: '1px solid rgba(255,255,255,0.06)', borderTop: `3px solid ${color}`, transition: 'all 0.25s', cursor: 'default' }}
+              whileHover={{ y: -4, boxShadow: `0 16px 40px ${color}15` }}
+              style={{ flex: 1, background: '#fff', borderRadius: 16, padding: '2rem', border: '1px solid #f1f5f9', borderTop: `3px solid ${color}`, boxShadow: '0 1px 4px rgba(0,0,0,0.06)', transition: 'all 0.25s', cursor: 'default' }}
             >
-              <div style={{ width: 54, height: 54, borderRadius: 15, background: color + '18', border: `1px solid ${color}35`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem', boxShadow: `0 8px 20px ${color}20` }}>
+              <div style={{ width: 54, height: 54, borderRadius: 14, background: color + '12', border: `1px solid ${color}25`, display: 'flex', alignItems: 'center', justifyContent: 'center', marginBottom: '1.25rem' }}>
                 <Icon size={25} color={color} />
               </div>
-              <h3 style={{ fontSize: '1.15rem', fontWeight: 800, color: '#fff', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>{title}</h3>
-              <p style={{ fontSize: '0.875rem', color: '#475569', lineHeight: 1.65, margin: '0 0 1.5rem' }}>{desc}</p>
+              <h3 style={{ fontSize: '1.1rem', fontWeight: 800, color: '#0f172a', margin: '0 0 0.5rem', letterSpacing: '-0.02em' }}>{title}</h3>
+              <p style={{ fontSize: '0.875rem', color: '#64748b', lineHeight: 1.65, margin: '0 0 1.5rem' }}>{desc}</p>
               <ul style={{ listStyle: 'none', padding: 0, margin: 0, display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
                 {items.map((item) => (
-                  <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.84rem', color: '#64748b' }}>
+                  <li key={item} style={{ display: 'flex', alignItems: 'center', gap: '0.55rem', fontSize: '0.84rem', color: '#475569' }}>
                     <CheckCircle2 size={14} color={color} style={{ flexShrink: 0 }} />
                     {item}
                   </li>
@@ -355,8 +355,8 @@ function TrustSection() {
   const TRUST = [
     { Icon: Shield, text: 'Dados com criptografia AES-256', color: '#10b981' },
     { Icon: Lock, text: 'Autenticação segura via Supabase', color: '#3b82f6' },
-    { Icon: Bell, text: 'Notificações em tempo real', color: '#6366f1' },
-    { Icon: Star, text: 'Interface moderna e intuitiva', color: '#f59e0b' },
+    { Icon: Bell, text: 'Notificações por e-mail e WhatsApp', color: '#6366f1' },
+    { Icon: DollarSign, text: 'Pagamento PIX e cartão integrado', color: '#f59e0b' },
   ];
   return (
     <section style={{ background: '#fff', padding: mobile ? '2.5rem 1.5rem' : '3.5rem 1.5rem', borderTop: '1px solid #f1f5f9' }}>

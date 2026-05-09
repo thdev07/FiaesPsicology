@@ -65,10 +65,10 @@ function FloatingCard({ Icon, color, title, value, sub, style, delay, floatDur }
 }
 
 const FEATURES = [
-  'Agenda interativa com múltiplos profissionais',
+  'Agenda interativa com slots em tempo real',
   'Prontuários com criptografia AES-256',
-  'Dashboard financeiro em tempo real',
-  'Notificações automáticas por e-mail',
+  'Pagamento online via PIX e cartão',
+  'Notificações por e-mail e WhatsApp',
 ];
 
 export default function Login() {
