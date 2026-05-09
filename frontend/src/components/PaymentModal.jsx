@@ -114,17 +114,22 @@ export default function PaymentModal({ transaction, onClose, onPaid }) {
               </button>
             )}
 
-            <div style={divider}>
-              <div style={dividerLine} />
-              <span style={dividerText}>ou pague com cartão</span>
-              <div style={dividerLine} />
-            </div>
-
-            {pixData.checkout_url && (
-              <a href={pixData.checkout_url} target="_blank" rel="noreferrer" style={cardBtn}>
-                <CreditCard size={15} />
-                Pagar com cartão de crédito/débito
-              </a>
+            {pixData.checkout_url ? (
+              <>
+                <div style={divider}>
+                  <div style={dividerLine} />
+                  <span style={dividerText}>ou pague com cartão</span>
+                  <div style={dividerLine} />
+                </div>
+                <a href={pixData.checkout_url} target="_blank" rel="noreferrer" style={cardBtn}>
+                  <CreditCard size={15} />
+                  Pagar com cartão de crédito/débito
+                </a>
+              </>
+            ) : (
+              <p style={{ fontSize: '0.72rem', color: '#9ca3af', textAlign: 'center', marginTop: '0.5rem' }}>
+                Pagamento via cartão indisponível no momento.
+              </p>
             )}
 
             <p style={{ fontSize: '0.72rem', color: '#9ca3af', textAlign: 'center', marginTop: '1.25rem', lineHeight: 1.4 }}>
