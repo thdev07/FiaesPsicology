@@ -8,7 +8,6 @@ function getConfig() {
   return { instanceId, instanceToken, clientToken };
 }
 
-/** Normaliza telefone brasileiro para formato Z-API: apenas dígitos com DDI */
 function normalizeBrPhone(phone) {
   if (!phone) return null;
   const digits = phone.replace(/\D/g, '');
@@ -39,33 +38,43 @@ async function sendWhatsApp(to, message) {
 
 function fmtDate(date) {
   return new Date(`${date}T00:00:00`).toLocaleDateString('pt-BR', {
-    weekday: 'long', day: '2-digit', month: 'long',
+    weekday: 'long', day: '2-digit', month: 'long', year: 'numeric',
   });
 }
 
 export async function sendAppointmentConfirmationWhatsApp({ to, patientName, psychologistName, date, time, roomName }) {
   const msg = [
-    `Olá, *${patientName}*! 👋`,
-    `Sua consulta foi *confirmada* com sucesso.`,
+    `✅ *Consulta Confirmada — FiaesPsychology*`,
+    ``,
+    `Olá, *${patientName}*! Sua consulta foi agendada com sucesso.`,
     ``,
     `📅 *Data:* ${fmtDate(date)}`,
     `🕐 *Horário:* ${time.slice(0, 5)}`,
     `👤 *Psicólogo(a):* ${psychologistName}`,
     roomName ? `🚪 *Sala:* ${roomName}` : null,
     ``,
-    `Em caso de dúvidas, entre em contato com a clínica.`,
-    `— Equipe FiaesPsychology`,
+    `⚠️ Em caso de imprevisto, entre em contato com antecedência para reagendar.`,
+    ``,
+    `Qualquer dúvida, estamos à disposição.`,
+    `📍 *Clínica FiaesPsychology*`,
   ].filter(Boolean).join('\n');
   return sendWhatsApp(to, msg);
 }
 
 export async function sendAppointmentCancellationWhatsApp({ to, patientName, date, time, psychologistName }) {
   const msg = [
-    `Olá, *${patientName}*.`,
-    `Sua consulta do dia *${fmtDate(date)}* às *${time.slice(0, 5)}* com *${psychologistName}* foi *cancelada*.`,
+    `❌ *Consulta Cancelada — FiaesPsychology*`,
     ``,
-    `Entre em contato com a clínica para reagendar.`,
-    `— Equipe FiaesPsychology`,
+    `Olá, *${patientName}*.`,
+    ``,
+    `Infelizmente sua consulta abaixo foi *cancelada*:`,
+    ``,
+    `📅 *Data:* ${fmtDate(date)}`,
+    `🕐 *Horário:* ${time.slice(0, 5)}`,
+    `👤 *Psicólogo(a):* ${psychologistName}`,
+    ``,
+    `Para reagendar, entre em contato com a clínica ou acesse o sistema.`,
+    `📍 *Clínica FiaesPsychology*`,
   ].join('\n');
   return sendWhatsApp(to, msg);
 }
@@ -73,30 +82,56 @@ export async function sendAppointmentCancellationWhatsApp({ to, patientName, dat
 export async function sendPaymentConfirmationWhatsApp({ to, patientName, psychologistName, date, time, amount }) {
   const formatted = Number(amount).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' });
   const msg = [
-    `Olá, *${patientName}*! 🎉`,
-    `Recebemos seu pagamento com sucesso.`,
+    `💳 *Pagamento Confirmado — FiaesPsychology*`,
+    ``,
+    `Olá, *${patientName}*! Recebemos seu pagamento com sucesso. 🎉`,
     ``,
     `📅 *Consulta:* ${fmtDate(date)} às ${time?.slice(0, 5)}`,
     `👤 *Psicólogo(a):* ${psychologistName}`,
     `💰 *Valor pago:* ${formatted}`,
     ``,
-    `Guarde esta mensagem como comprovante.`,
-    `— Equipe FiaesPsychology`,
+    `Guarde esta mensagem como comprovante do pagamento.`,
+    ``,
+    `Até a próxima! 😊`,
+    `📍 *Clínica FiaesPsychology*`,
   ].join('\n');
   return sendWhatsApp(to, msg);
 }
 
 export async function sendRescheduleNotificationWhatsApp({ to, adminName, patientName, psychologistName, oldDate, oldTime, newDate, newTime }) {
   const msg = [
+    `🔄 *Solicitação de Reagendamento — FiaesPsychology*`,
+    ``,
     `Olá${adminName ? `, *${adminName}*` : ''}!`,
-    `O paciente *${patientName}* solicitou reagendamento de consulta.`,
+    ``,
+    `O paciente *${patientName}* solicitou o reagendamento da consulta abaixo:`,
     ``,
     `👤 *Psicólogo(a):* ${psychologistName}`,
-    `❌ *Data anterior:* ${fmtDate(oldDate)} às ${oldTime?.slice(0, 5)}`,
-    `✅ *Nova data:* ${fmtDate(newDate)} às ${newTime?.slice(0, 5)}`,
     ``,
-    `Acesse o sistema para confirmar o novo horário.`,
-    `— FiaesPsychology`,
+    `❌ *Data anterior:* ${fmtDate(oldDate)} às ${oldTime?.slice(0, 5)}`,
+    `✅ *Nova data solicitada:* ${fmtDate(newDate)} às ${newTime?.slice(0, 5)}`,
+    ``,
+    `Acesse o sistema para confirmar ou recusar o novo horário.`,
+    `📍 *Clínica FiaesPsychology*`,
   ].join('\n');
+  return sendWhatsApp(to, msg);
+}
+
+export async function sendReminderWhatsApp({ to, patientName, psychologistName, date, time, roomName }) {
+  const msg = [
+    `🔔 *Lembrete de Consulta — FiaesPsychology*`,
+    ``,
+    `Olá, *${patientName}*!`,
+    ``,
+    `Lembramos que você tem uma consulta *amanhã*:`,
+    ``,
+    `📅 *Data:* ${fmtDate(date)}`,
+    `🕐 *Horário:* ${time.slice(0, 5)}`,
+    `👤 *Psicólogo(a):* ${psychologistName}`,
+    roomName ? `🚪 *Sala:* ${roomName}` : null,
+    ``,
+    `Caso precise reagendar, entre em contato com antecedência.`,
+    `📍 *Clínica FiaesPsychology*`,
+  ].filter(Boolean).join('\n');
   return sendWhatsApp(to, msg);
 }
