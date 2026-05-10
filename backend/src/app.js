@@ -12,6 +12,7 @@ import transactionsRoutes from './modules/financial/transactions.routes.js';
 import insuranceRoutes from './modules/insurance/insurance.routes.js';
 import reportsRoutes from './modules/reports/reports.routes.js';
 import cronRoutes from './modules/cron/cron.routes.js';
+import documentsRoutes from './modules/documents/documents.routes.js';
 
 import { errorMiddleware } from './middlewares/error.middleware.js';
 
@@ -45,6 +46,7 @@ app.use('/api/financial', transactionsRoutes);
 app.use('/api/insurance', insuranceRoutes);
 app.use('/api/reports', reportsRoutes);
 app.use('/api/cron', cronRoutes);
+app.use('/api/documents', documentsRoutes);
 
 app.use(errorMiddleware);
 

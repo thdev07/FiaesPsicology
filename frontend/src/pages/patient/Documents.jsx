@@ -4,6 +4,7 @@ import { Receipt, TrendingUp, AlertCircle, FileStack, Download, FileText } from 
 import { api } from '../../services/api';
 import { SkeletonTable } from '../../components/ui/Skeleton';
 import { generateReceipt } from '../../utils/generateReceipt';
+import { viewDocument } from '../../utils/generateDocument';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
@@ -19,6 +20,7 @@ const PGTO_COLORS = {
 
 export default function PatientDocuments() {
   const [debts, setDebts] = useState([]);
+  const [docs, setDocs] = useState([]);
   const [patientName, setPatientName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -27,9 +29,11 @@ export default function PatientDocuments() {
     Promise.all([
       api.get('/financial/my-debts').catch(() => []),
       api.get('/patients/me').catch(() => null),
-    ]).then(([data, me]) => {
+      api.get('/documents/my').catch(() => []),
+    ]).then(([data, me, myDocs]) => {
       setDebts(Array.isArray(data) ? data : []);
       setPatientName(me?.nome ?? '');
+      setDocs(Array.isArray(myDocs) ? myDocs : []);
     }).catch((err) => setError(err?.error ?? 'Erro ao carregar dados.'))
       .finally(() => setLoading(false));
   }, []);
@@ -170,14 +174,52 @@ export default function PatientDocuments() {
         </div>
       )}
 
-      {/* Documentos médicos (laudos) */}
+      {/* Documentos médicos (laudos e atestados) */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Documentos médicos</h2>
-        <div style={s.emptyBox}>
-          <Receipt size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
-          <p style={s.emptyText}>Laudos e atestados liberados pelo psicólogo aparecerão aqui.</p>
-          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>Em breve disponível.</p>
-        </div>
+        {loading ? (
+          <SkeletonTable rows={3} cols={4} />
+        ) : docs.length === 0 ? (
+          <div style={s.emptyBox}>
+            <FileText size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
+            <p style={s.emptyText}>Nenhum documento disponível ainda.</p>
+            <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>
+              Laudos e atestados liberados pelo psicólogo aparecerão aqui.
+            </p>
+          </div>
+        ) : (
+          <div style={s.receiptGrid}>
+            {docs.map((doc) => {
+              const TIPO_LABELS = { laudo: 'Laudo', atestado: 'Atestado', relatorio: 'Relatório', declaracao: 'Declaração' };
+              const dataEmissao = new Date(doc.created_at).toLocaleDateString('pt-BR');
+              return (
+                <motion.div
+                  key={doc.id}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  style={s.receiptCard}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <div style={{ ...s.receiptIcon, background: '#f5f3ff' }}>
+                      <FileText size={18} color="#7c3aed" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <span style={{ fontSize: '0.7rem', fontWeight: 700, color: '#7c3aed', background: '#f5f3ff', padding: '1px 8px', borderRadius: 999 }}>
+                        {TIPO_LABELS[doc.tipo] ?? doc.tipo}
+                      </span>
+                      <p style={{ ...s.receiptCardTitle, marginTop: 4 }}>{doc.titulo}</p>
+                      <p style={s.receiptCardMeta}>{dataEmissao} · {doc.users?.nome ?? '—'}</p>
+                    </div>
+                  </div>
+                  <button onClick={() => viewDocument(doc)} style={{ ...s.receiptCardBtn, background: '#f5f3ff', color: '#7c3aed', borderColor: '#ddd6fe' }}>
+                    <Download size={14} />
+                    Visualizar / Imprimir
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        )}
       </div>
     </motion.div>
   );
