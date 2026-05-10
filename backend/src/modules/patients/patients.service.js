@@ -26,5 +26,8 @@ export async function createPatientService({ password, ...patientData }) {
 export const updatePatientService = (id, data) =>
   supabase.from('patients').update(data).eq('id', id).select().single();
 
+export const updateMyPatientService = (email, { telefone, data_nascimento }) =>
+  supabase.from('patients').update({ telefone, data_nascimento }).eq('email', email).select('*, insurance_plans(nome)').single();
+
 export const deletePatientService = (id) =>
   supabase.from('patients').delete().eq('id', id);
