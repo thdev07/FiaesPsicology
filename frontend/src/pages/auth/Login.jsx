@@ -1,6 +1,16 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
 import {
   Mail, Lock, Eye, EyeOff, BrainCircuit,
   ArrowLeft, CalendarDays, TrendingUp, FileText, CheckCircle2,
@@ -73,6 +83,7 @@ const FEATURES = [
 
 export default function Login() {
   const navigate = useNavigate();
+  const mobile = useIsMobile();
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
@@ -116,7 +127,7 @@ export default function Login() {
     <div style={{ minHeight: '100vh', display: 'flex', fontFamily: "'Inter', system-ui, sans-serif" }}>
 
       {/* ── Left panel ── */}
-      <div style={{
+      {!mobile && <div style={{
         flex: '0 0 46%',
         background: 'linear-gradient(150deg, #050d1e 0%, #0c1a35 45%, #101827 100%)',
         display: 'flex', alignItems: 'center', justifyContent: 'center',
@@ -148,7 +159,7 @@ export default function Login() {
               </span>
             </h2>
             <p style={{ color: '#475569', fontSize: '0.875rem', lineHeight: 1.7, margin: '0 0 2rem', maxWidth: 300 }}>
-              Agenda, prontuários, financeiro e pacientes — tudo integrado e seguro.
+              Agenda, prontuários, financeiro e pacientes. Tudo integrado em uma plataforma segura.
             </p>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.7rem' }}>
@@ -164,26 +175,37 @@ export default function Login() {
 
         {/* Floating cards */}
         {MOCK_CARDS.map((c) => <FloatingCard key={c.title} {...c} />)}
-      </div>
+      </div>}
 
       {/* ── Right panel ── */}
-      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: '#f1f5f9', padding: '2rem', position: 'relative' }}>
-        <button
-          onClick={() => navigate('/')}
-          style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#94a3b8', background: 'rgba(255,255,255,0.7)', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, backdropFilter: 'blur(8px)' }}
-        >
-          <ArrowLeft size={14} /> Voltar
-        </button>
+      <div style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: mobile ? '#fff' : '#f1f5f9', padding: mobile ? '1.5rem 1rem' : '2rem', position: 'relative', minHeight: '100vh' }}>
+        {!mobile && (
+          <button
+            onClick={() => navigate('/')}
+            style={{ position: 'absolute', top: '1.5rem', left: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.35rem', color: '#94a3b8', background: 'rgba(255,255,255,0.7)', border: '1px solid #e2e8f0', borderRadius: 8, padding: '0.4rem 0.75rem', cursor: 'pointer', fontSize: '0.82rem', fontWeight: 600, backdropFilter: 'blur(8px)' }}
+          >
+            <ArrowLeft size={14} /> Voltar
+          </button>
+        )}
+
+        {mobile && (
+          <div style={{ width: '100%', maxWidth: 430, marginBottom: '1.5rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+            <div style={{ width: 38, height: 38, borderRadius: 10, background: 'linear-gradient(135deg,#3b82f6,#6366f1)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              <BrainCircuit size={19} color="#fff" />
+            </div>
+            <span style={{ fontWeight: 800, fontSize: '1.05rem', color: '#1e293b', letterSpacing: '-0.02em' }}>FiaesPsychology</span>
+          </div>
+        )}
 
         <motion.div
           initial={{ opacity: 0, y: 24, scale: 0.98 }}
           animate={{ opacity: 1, y: 0, scale: 1 }}
           transition={{ duration: 0.45 }}
           style={{
-            background: '#fff', borderRadius: 18,
-            padding: '2.75rem 2.5rem',
+            background: '#fff', borderRadius: mobile ? 14 : 18,
+            padding: mobile ? '1.75rem 1.25rem' : '2.75rem 2.5rem',
             width: '100%', maxWidth: 430,
-            boxShadow: '0 8px 40px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.05)',
+            boxShadow: mobile ? '0 2px 16px rgba(0,0,0,0.08)' : '0 8px 40px rgba(0,0,0,0.1), 0 1px 4px rgba(0,0,0,0.05)',
             border: '1px solid rgba(226,232,240,0.8)',
           }}
         >
@@ -270,7 +292,7 @@ export default function Login() {
 
           <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid #f1f5f9', textAlign: 'center' }}>
             <p style={{ fontSize: '0.78rem', color: '#cbd5e1', margin: 0 }}>
-              FiaesPsychology &copy; {new Date().getFullYear()} — Todos os direitos reservados
+              FiaesPsychology &copy; {new Date().getFullYear()}. Todos os direitos reservados.
             </p>
           </div>
         </motion.div>

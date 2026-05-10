@@ -145,7 +145,7 @@ function HeroSection({ onLogin }) {
           </h1>
 
           <p style={{ fontSize: 'clamp(1rem,2vw,1.15rem)', color: '#64748b', lineHeight: 1.75, margin: '0 0 2.25rem', maxWidth: 500 }}>
-            Do agendamento ao prontuário, do financeiro ao paciente — tudo integrado em uma plataforma segura, moderna e fácil de usar.
+            Do agendamento ao prontuário, do financeiro ao paciente: tudo integrado em uma plataforma segura, moderna e fácil de usar.
           </p>
 
           <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', marginBottom: '2.5rem' }}>
@@ -230,7 +230,7 @@ function HowItWorks() {
             Simples assim em 3 passos
           </h2>
           <p style={{ color: '#64748b', fontSize: '1rem', margin: '0 auto', maxWidth: 500, lineHeight: 1.65 }}>
-            Configure, gerencie e acompanhe — tudo dentro de uma plataforma unificada.
+            Configure, gerencie e acompanhe. Tudo em uma plataforma unificada.
           </p>
         </motion.div>
 
@@ -399,7 +399,7 @@ function CTASection({ onLogin }) {
           Pronto para digitalizar sua clínica?
         </h2>
         <p style={{ color: '#bfdbfe', fontSize: '1.05rem', lineHeight: 1.7, margin: '0 0 2.5rem' }}>
-          Acesse agora e gerencie tudo em um só lugar — agenda, pacientes, prontuários e financeiro integrados.
+          Acesse agora e gerencie agenda, pacientes, prontuários e financeiro em um só lugar.
         </p>
         <motion.button onClick={onLogin}
           whileHover={{ scale: 1.04, y: -3 }} whileTap={{ scale: 0.97 }}
@@ -449,7 +449,7 @@ function Footer({ onLogin }) {
         </div>
 
         <div style={{ borderTop: '1px solid rgba(255,255,255,0.05)', paddingTop: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexDirection: mobile ? 'column' : 'row', gap: '0.5rem' }}>
-          <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>© {new Date().getFullYear()} FiaesPsychology — thdev07. Todos os direitos reservados.</p>
+          <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>© {new Date().getFullYear()} FiaesPsychology. Todos os direitos reservados.</p>
           <p style={{ color: '#1e293b', fontSize: '0.78rem', margin: 0 }}>Construído com React + Supabase + Node.js</p>
         </div>
       </div>

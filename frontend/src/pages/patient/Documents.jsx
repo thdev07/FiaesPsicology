@@ -1,5 +1,15 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
 import { Receipt, TrendingUp, AlertCircle, FileStack, Download, FileText } from 'lucide-react';
 import { api } from '../../services/api';
 import { SkeletonTable } from '../../components/ui/Skeleton';
@@ -19,6 +29,7 @@ const PGTO_COLORS = {
 };
 
 export default function PatientDocuments() {
+  const mobile = useIsMobile();
   const [debts, setDebts] = useState([]);
   const [docs, setDocs] = useState([]);
   const [patientName, setPatientName] = useState('');
@@ -86,6 +97,32 @@ export default function PatientDocuments() {
             <FileStack size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
             <p style={s.emptyText}>Nenhuma cobrança encontrada.</p>
           </div>
+        ) : mobile ? (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {debts.map((d) => (
+              <div key={d.id} style={{ background: '#fff', borderRadius: 10, padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', borderLeft: `3px solid ${(PGTO_COLORS[d.status_pagamento] ?? {}).color ?? '#e2e8f0'}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '0.88rem', color: '#1e293b' }}>{d.categoria}</p>
+                    <p style={{ margin: '0.2rem 0 0', fontSize: '0.78rem', color: '#64748b' }}>
+                      {d.appointments?.data
+                        ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
+                        : 'Sem data'} · {d.appointments?.users?.nome ?? 'Psicólogo não informado'}
+                    </p>
+                  </div>
+                  <strong style={{ fontSize: '0.95rem', color: '#1e293b' }}>{fmt(d.valor)}</strong>
+                </div>
+                <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', marginTop: '0.5rem' }}>
+                  <span style={{ ...s.badge, ...(PGTO_COLORS[d.status_pagamento] ?? {}) }}>{d.status_pagamento}</span>
+                  {d.status_pagamento === 'pago' && (
+                    <button onClick={() => generateReceipt(d, patientName)} style={s.receiptBtn}>
+                      <Download size={12} /> Recibo
+                    </button>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
         ) : (
           <div style={s.tableWrap}>
             <table style={s.table}>
@@ -102,9 +139,9 @@ export default function PatientDocuments() {
                     <td style={s.td}>
                       {d.appointments?.data
                         ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
-                        : '—'}
+                        : 'Sem data'}
                     </td>
-                    <td style={s.td}>{d.appointments?.users?.nome ?? '—'}</td>
+                    <td style={s.td}>{d.appointments?.users?.nome ?? 'Não informado'}</td>
                     <td style={s.td}>{d.categoria}</td>
                     <td style={s.td}><strong>{fmt(d.valor)}</strong></td>
                     <td style={s.td}>
@@ -123,7 +160,7 @@ export default function PatientDocuments() {
                           Recibo
                         </button>
                       ) : (
-                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>—</span>
+                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>Indisponível</span>
                       )}
                     </td>
                   </tr>

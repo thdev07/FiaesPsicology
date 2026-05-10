@@ -1,6 +1,16 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
 import { CalendarDays, ListChecks, Wallet, CheckCircle2, Clock, FileText, CreditCard, CalendarPlus, ArrowRight } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../contexts/AuthContext';
@@ -50,6 +60,7 @@ function StatCard({ label, children, color, Icon }) {
 export default function PatientDashboard() {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const mobile = useIsMobile();
   const { show: toast } = useToast();
   const [appointments, setAppointments] = useState([]);
   const [debts, setDebts] = useState([]);
@@ -129,7 +140,7 @@ export default function PatientDashboard() {
               <p style={s.cardValue}>
                 {new Date(`${nextSession.data}T00:00:00`).toLocaleDateString('pt-BR', { weekday: 'short', day: '2-digit', month: 'short' })}
               </p>
-              <p style={s.cardSub}>{nextSession.hora?.slice(0, 5)} — {nextSession.users?.nome ?? '—'}</p>
+              <p style={s.cardSub}>{nextSession.hora?.slice(0, 5)} com {nextSession.users?.nome ?? 'psicólogo'}</p>
             </>
           ) : (
             <p style={{ ...s.cardValue, fontSize: '0.9rem', color: '#94a3b8' }}>Nenhuma agendada</p>
@@ -202,37 +213,61 @@ export default function PatientDashboard() {
       {pendingDebts.length > 0 && (
         <div style={s.section} id="debts-section">
           <h2 style={s.sectionTitle}>Cobranças pendentes</h2>
-          <div style={s.tableWrap}>
-            <table style={s.table}>
-              <thead>
-                <tr>
-                  {['Data', 'Psicólogo', 'Descrição', 'Valor', ''].map((h) => (
-                    <th key={h} style={s.th}>{h}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {pendingDebts.map((d) => (
-                  <tr key={d.id} style={s.tr}>
-                    <td style={s.td}>
-                      {d.appointments?.data
-                        ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
-                        : '—'}
-                    </td>
-                    <td style={s.td}>{d.appointments?.users?.nome ?? '—'}</td>
-                    <td style={s.td}>{d.categoria}</td>
-                    <td style={s.td}><strong>{fmt(d.valor)}</strong></td>
-                    <td style={s.td}>
-                      <button onClick={() => setPayingTransaction(d)} style={s.payBtn}>
-                        <CreditCard size={13} />
-                        Pagar agora
-                      </button>
-                    </td>
+          {mobile ? (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+              {pendingDebts.map((d) => (
+                <div key={d.id} style={{ background: '#fff', borderRadius: 10, padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', borderLeft: '3px solid #f59e0b' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{d.categoria}</p>
+                      <p style={{ margin: '0.2rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                        {d.appointments?.data
+                          ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
+                          : 'Sem data'} · {d.appointments?.users?.nome ?? 'Psicólogo não informado'}
+                      </p>
+                    </div>
+                    <strong style={{ fontSize: '1rem', color: '#b45309' }}>{fmt(d.valor)}</strong>
+                  </div>
+                  <button onClick={() => setPayingTransaction(d)} style={{ ...s.payBtn, width: '100%', justifyContent: 'center' }}>
+                    <CreditCard size={13} />
+                    Pagar agora
+                  </button>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={s.tableWrap}>
+              <table style={s.table}>
+                <thead>
+                  <tr>
+                    {['Data', 'Psicólogo', 'Descrição', 'Valor', ''].map((h) => (
+                      <th key={h} style={s.th}>{h}</th>
+                    ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+                </thead>
+                <tbody>
+                  {pendingDebts.map((d) => (
+                    <tr key={d.id} style={s.tr}>
+                      <td style={s.td}>
+                        {d.appointments?.data
+                          ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
+                          : 'Sem data'}
+                      </td>
+                      <td style={s.td}>{d.appointments?.users?.nome ?? 'Não informado'}</td>
+                      <td style={s.td}>{d.categoria}</td>
+                      <td style={s.td}><strong>{fmt(d.valor)}</strong></td>
+                      <td style={s.td}>
+                        <button onClick={() => setPayingTransaction(d)} style={s.payBtn}>
+                          <CreditCard size={13} />
+                          Pagar agora
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </div>
       )}
 

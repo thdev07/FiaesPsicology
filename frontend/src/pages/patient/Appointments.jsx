@@ -1,6 +1,16 @@
 import { useEffect, useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { CalendarDays, CreditCard, X, RotateCcw } from 'lucide-react';
+
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
 import { api } from '../../services/api';
 import { useToast } from '../../contexts/ToastContext';
 import { SkeletonTable } from '../../components/ui/Skeleton';
@@ -280,6 +290,62 @@ export default function PatientAppointments() {
 }
 
 function AppointmentTable({ rows, getDebt, showActions = false, onCancel, onReschedule, onPay }) {
+  const mobile = useIsMobile();
+
+  if (mobile) {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+        {rows.map((a) => {
+          const debt = getDebt?.(a.id);
+          const canAct = showActions && (a.status === 'pendente' || a.status === 'confirmado');
+          const dataFmt = a.data
+            ? new Date(`${a.data}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
+            : 'Sem data';
+          return (
+            <div key={a.id} style={{ background: '#fff', borderRadius: 10, padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', borderLeft: `3px solid ${(STATUS_COLORS[a.status] ?? {}).color ?? '#e2e8f0'}` }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                <div>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{dataFmt} às {a.hora?.slice(0, 5) ?? '--'}</p>
+                  <p style={{ margin: '0.2rem 0 0', fontSize: '0.82rem', color: '#64748b' }}>{a.users?.nome ?? 'Psicólogo não informado'}</p>
+                </div>
+                <Badge label={a.status} colors={STATUS_COLORS[a.status] ?? {}} />
+              </div>
+
+              {(a.rooms?.nome || a.tipo) && (
+                <p style={{ margin: '0 0 0.6rem', fontSize: '0.78rem', color: '#94a3b8' }}>
+                  {[a.rooms?.nome, TIPO_LABELS[a.tipo] ?? a.tipo].filter(Boolean).join(' · ')}
+                </p>
+              )}
+
+              <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', alignItems: 'center' }}>
+                {debt && (
+                  debt.status_pagamento === 'pendente' && showActions ? (
+                    <button onClick={() => onPay?.(debt)} style={s.payBtn}>
+                      <CreditCard size={12} />
+                      Pagar {fmt(debt.valor)}
+                    </button>
+                  ) : (
+                    <Badge label={debt.status_pagamento} colors={PGTO_COLORS[debt.status_pagamento] ?? {}} />
+                  )
+                )}
+                {canAct && (
+                  <>
+                    <button onClick={() => onReschedule?.(a)} style={{ ...s.btnAction, gap: '0.3rem', padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}>
+                      <RotateCcw size={12} /> Reagendar
+                    </button>
+                    <button onClick={() => onCancel?.(a)} style={{ ...s.btnAction, color: '#dc2626', borderColor: '#fecaca', gap: '0.3rem', padding: '0.35rem 0.65rem', fontSize: '0.75rem' }}>
+                      <X size={12} /> Cancelar
+                    </button>
+                  </>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    );
+  }
+
   return (
     <div style={s.tableWrap}>
       <table style={s.table}>
@@ -299,11 +365,11 @@ function AppointmentTable({ rows, getDebt, showActions = false, onCancel, onResc
                 <td style={s.td}>
                   {a.data
                     ? new Date(`${a.data}T00:00:00`).toLocaleDateString('pt-BR', { day: '2-digit', month: 'short', year: 'numeric' })
-                    : '—'}
+                    : 'Sem data'}
                 </td>
-                <td style={s.td}>{a.hora?.slice(0, 5) ?? '—'}</td>
-                <td style={s.td}>{a.users?.nome ?? '—'}</td>
-                <td style={s.td}>{a.rooms?.nome ?? '—'}</td>
+                <td style={s.td}>{a.hora?.slice(0, 5) ?? '--'}</td>
+                <td style={s.td}>{a.users?.nome ?? 'Não informado'}</td>
+                <td style={s.td}>{a.rooms?.nome ?? 'Não informado'}</td>
                 <td style={s.td}>{TIPO_LABELS[a.tipo] ?? a.tipo}</td>
                 <td style={s.td}>
                   <Badge label={a.status} colors={STATUS_COLORS[a.status] ?? {}} />
@@ -313,13 +379,13 @@ function AppointmentTable({ rows, getDebt, showActions = false, onCancel, onResc
                     debt.status_pagamento === 'pendente' && showActions ? (
                       <button onClick={() => onPay?.(debt)} style={s.payBtn}>
                         <CreditCard size={12} />
-                        Pagar {Number(debt.valor).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}
+                        Pagar {fmt(debt.valor)}
                       </button>
                     ) : (
                       <Badge label={debt.status_pagamento} colors={PGTO_COLORS[debt.status_pagamento] ?? {}} />
                     )
                   ) : (
-                    <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>—</span>
+                    <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Sem cobrança</span>
                   )}
                 </td>
                 {showActions && (
@@ -334,7 +400,7 @@ function AppointmentTable({ rows, getDebt, showActions = false, onCancel, onResc
                         </button>
                       </div>
                     ) : (
-                      <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>—</span>
+                      <span style={{ color: '#94a3b8', fontSize: '0.8rem' }}>Sem ações</span>
                     )}
                   </td>
                 )}
