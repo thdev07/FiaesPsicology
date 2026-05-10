@@ -77,7 +77,7 @@ function Navbar({ onLogin }) {
       position: 'sticky', top: 0, zIndex: 100,
       background: scrolled ? 'rgba(9,17,32,0.95)' : 'transparent',
       backdropFilter: scrolled ? 'blur(16px)' : 'none',
-      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.07)' : '1px solid transparent',
+      borderBottom: scrolled ? '1px solid rgba(255,255,255,0.12)' : '1px solid rgba(255,255,255,0.06)',
       transition: 'all 0.3s ease',
     }}>
       <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 68 }}>
@@ -137,14 +137,14 @@ function HeroSection({ onLogin }) {
             <span style={{ color: '#a5b4fc', fontSize: '0.78rem', fontWeight: 700, letterSpacing: '0.06em', textTransform: 'uppercase' }}>Sistema de gestão clínica</span>
           </motion.div>
 
-          <h1 style={{ fontSize: 'clamp(2.2rem,5.5vw,3.8rem)', fontWeight: 900, color: '#fff', lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 1.5rem' }}>
-            Gestão completa para{' '}
+          <h1 style={{ fontSize: 'clamp(2.2rem,5.5vw,3.8rem)', fontWeight: 900, lineHeight: 1.08, letterSpacing: '-0.035em', margin: '0 0 1.5rem' }}>
+            <span style={{ color: '#e2e8f0' }}>Gestão completa para{' '}</span>
             <span style={{ background: 'linear-gradient(90deg,#60a5fa 0%,#a78bfa 50%,#34d399 100%)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent', backgroundClip: 'text' }}>
               clínicas de psicologia
             </span>
           </h1>
 
-          <p style={{ fontSize: 'clamp(1rem,2vw,1.15rem)', color: '#64748b', lineHeight: 1.75, margin: '0 0 2.25rem', maxWidth: 500 }}>
+          <p style={{ fontSize: 'clamp(1rem,2vw,1.15rem)', color: '#94a3b8', lineHeight: 1.75, margin: '0 0 2.25rem', maxWidth: 500 }}>
             Do agendamento ao prontuário, do financeiro ao paciente: tudo integrado em uma plataforma segura, moderna e fácil de usar.
           </p>
 
@@ -161,7 +161,7 @@ function HeroSection({ onLogin }) {
 
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1.25rem' }}>
             {['Agenda inteligente', 'Prontuários criptografados', 'Financeiro automático'].map((f) => (
-              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#475569', fontSize: '0.84rem', fontWeight: 500 }}>
+              <span key={f} style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', color: '#64748b', fontSize: '0.84rem', fontWeight: 500 }}>
                 <CheckCircle2 size={15} color="#22d3ee" />
                 {f}
               </span>
