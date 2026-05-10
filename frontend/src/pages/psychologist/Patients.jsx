@@ -6,7 +6,18 @@ import { api } from '../../services/api';
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { nome: '', cpf: '', email: '', telefone: '', data_nascimento: '', historico_clinico: '', plano_id: '' };
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 export default function Patients() {
+  const mobile = useIsMobile();
   const [patients, setPatients] = useState([]);
   const [insurancePlans, setInsurancePlans] = useState([]);
   const [search, setSearch] = useState('');
@@ -89,23 +100,23 @@ export default function Patients() {
 
   return (
     <motion.div {...pageAnim}>
-      <div style={s.topbar}>
+      <div style={{ ...s.topbar, flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <Users size={22} color="#3b82f6" />
           <h1 style={s.title}>Meus Pacientes</h1>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
-          <div style={{ position: 'relative', display: 'inline-flex', alignItems: 'center' }}>
-            <Search size={14} color="#94a3b8" style={{ position: 'absolute', left: '0.7rem' }} />
+        <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center', flexWrap: 'wrap', width: mobile ? '100%' : 'auto' }}>
+          <div style={{ ...s.searchWrap, flex: mobile ? 1 : 'unset' }}>
+            <Search size={14} color="#94a3b8" style={{ flexShrink: 0 }} />
             <input
               type="text"
               placeholder="Buscar por nome, email ou CPF..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              style={s.search}
+              style={s.searchInput}
             />
           </div>
-          <button onClick={openCreate} style={s.btnPrimary}>
+          <button onClick={openCreate} style={{ ...s.btnPrimary, width: mobile ? '100%' : 'auto', justifyContent: 'center' }}>
             <Plus size={15} />
             Novo paciente
           </button>
@@ -114,10 +125,30 @@ export default function Patients() {
 
       {error && <p style={s.error}>{error}</p>}
 
-      <div style={s.tableWrap}>
-        {filtered.length === 0 ? (
-          <div style={{ padding: 32, color: '#9ca3af', textAlign: 'center' }}>Nenhum paciente encontrado.</div>
-        ) : (
+      {filtered.length === 0 ? (
+        <div style={{ padding: 32, color: '#9ca3af', textAlign: 'center' }}>Nenhum paciente encontrado.</div>
+      ) : mobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {filtered.map((p) => (
+            <div key={p.id} style={{ background: '#fff', borderRadius: 10, padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', borderLeft: '3px solid #3b82f6' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem' }}>
+                <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#111827' }}>{p.nome}</p>
+                {p.insurance_plans?.nome && (
+                  <span style={{ fontSize: '0.72rem', background: '#ede9fe', color: '#5b21b6', borderRadius: 4, padding: '0.15rem 0.5rem', fontWeight: 600, flexShrink: 0 }}>
+                    {p.insurance_plans.nome}
+                  </span>
+                )}
+              </div>
+              <div style={{ fontSize: '0.8rem', color: '#6b7280', display: 'flex', flexDirection: 'column', gap: '0.15rem', marginBottom: '0.5rem' }}>
+                {p.email && <span>{p.email}</span>}
+                {p.telefone && <span>{p.telefone}</span>}
+              </div>
+              <button onClick={() => openEdit(p)} style={s.btnEdit}>Editar</button>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div style={s.tableWrap}>
           <table style={s.table}>
             <thead>
               <tr style={{ background: '#f9fafb' }}>
@@ -130,9 +161,9 @@ export default function Patients() {
               {filtered.map((p) => (
                 <tr key={p.id} style={s.tr}>
                   <td style={{ ...s.td, fontWeight: 600, color: '#111827' }}>{p.nome}</td>
-                  <td style={s.td}>{p.email ?? '—'}</td>
-                  <td style={s.td}>{p.telefone ?? '—'}</td>
-                  <td style={s.td}>{p.insurance_plans?.nome ?? '—'}</td>
+                  <td style={s.td}>{p.email ?? 'Não informado'}</td>
+                  <td style={s.td}>{p.telefone ?? 'Não informado'}</td>
+                  <td style={s.td}>{p.insurance_plans?.nome ?? 'Particular'}</td>
                   <td style={s.td}>
                     <button onClick={() => openEdit(p)} style={s.btnEdit}>Editar</button>
                   </td>
@@ -140,8 +171,8 @@ export default function Patients() {
               ))}
             </tbody>
           </table>
-        )}
-      </div>
+        </div>
+      )}
 
       {showModal && (
         <div style={s.overlay}>
@@ -238,11 +269,12 @@ export default function Patients() {
 }
 
 const s = {
-  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem', flexWrap: 'wrap', gap: '0.75rem' },
+  topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-  search: { padding: '0.5rem 0.75rem 0.5rem 2.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.875rem', width: 260, outline: 'none' },
+  searchWrap: { display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#fff', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '0.4rem 0.75rem', minWidth: 200 },
+  searchInput: { border: 'none', outline: 'none', fontSize: '0.875rem', color: '#334155', width: '100%', background: 'transparent' },
   error: { color: '#dc2626', fontSize: '0.875rem', margin: '0.5rem 0' },
-  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflow: 'hidden' },
+  tableWrap: { background: '#fff', borderRadius: '8px', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', overflowX: 'auto' },
   table: { width: '100%', borderCollapse: 'collapse' },
   th: { textAlign: 'left', padding: '0.75rem 1rem', background: '#f8fafc', fontSize: '0.75rem', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '1px solid #e2e8f0' },
   tr: { borderTop: '1px solid #f1f5f9' },
@@ -250,7 +282,7 @@ const s = {
   btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' },
   modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '480px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 4px 16px rgba(0,0,0,0.12)' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },

@@ -7,7 +7,18 @@ import { useToast } from '../../contexts/ToastContext';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 export default function NovoAgendamento() {
+  const mobile = useIsMobile();
   const navigate = useNavigate();
   const { show: toast } = useToast();
   const [psychologists, setPsychologists] = useState([]);
@@ -158,11 +169,11 @@ export default function NovoAgendamento() {
 
         <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
 
-        <div style={s.actions}>
-          <button type="button" onClick={() => navigate('/paciente/agendamentos')} style={s.btnSecondary}>
+        <div style={{ ...s.actions, flexDirection: mobile ? 'column-reverse' : 'row' }}>
+          <button type="button" onClick={() => navigate('/paciente/agendamentos')} style={{ ...s.btnSecondary, width: mobile ? '100%' : 'auto' }}>
             Cancelar
           </button>
-          <button type="submit" disabled={saving} style={s.btnPrimary}>
+          <button type="submit" disabled={saving} style={{ ...s.btnPrimary, width: mobile ? '100%' : 'auto', justifyContent: 'center' }}>
             {saving ? 'Enviando...' : 'Solicitar agendamento'}
           </button>
         </div>
@@ -178,7 +189,7 @@ const s = {
   fieldGroup: { display: 'flex', flexDirection: 'column', gap: '0.25rem' },
   label: { fontSize: '0.825rem', fontWeight: 600, color: '#374151' },
   input: { padding: '0.55rem 0.75rem', borderRadius: '6px', border: '1px solid #e2e8f0', fontSize: '0.9rem', width: '100%', boxSizing: 'border-box', outline: 'none', fontFamily: 'inherit' },
-  horarios: { display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '0.5rem' },
+  horarios: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(68px, 1fr))', gap: '0.5rem' },
   actions: { display: 'flex', justifyContent: 'flex-end', gap: '0.75rem', marginTop: '0.25rem' },
   btnPrimary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: 'none', background: '#3b82f6', color: '#fff', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', display: 'flex', alignItems: 'center', gap: '0.4rem', transition: 'all 0.2s ease', fontFamily: 'inherit' },
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem', fontFamily: 'inherit' },

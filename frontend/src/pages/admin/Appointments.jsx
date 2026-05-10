@@ -7,6 +7,16 @@ import { SkeletonTable } from '../../components/ui/Skeleton';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 const EMPTY_FORM = {
   paciente_id: '',
   psicologo_id: '',
@@ -51,6 +61,7 @@ function ConfirmModal({ title, message, confirmLabel, danger = false, onConfirm,
 
 export default function Appointments() {
   const { show: toast } = useToast();
+  const mobile = useIsMobile();
   const [appointments, setAppointments] = useState([]);
   const [patients, setPatients] = useState([]);
   const [psychologists, setPsychologists] = useState([]);
@@ -141,7 +152,7 @@ export default function Appointments() {
 
   return (
     <motion.div {...pageAnim}>
-      <div style={s.topbar}>
+      <div style={{ ...s.topbar, flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
           <CalendarDays size={22} color="#3b82f6" />
           <div>
@@ -198,11 +209,59 @@ export default function Appointments() {
       </div>
 
       {loading ? (
-        <SkeletonTable rows={6} cols={8} />
+        <SkeletonTable rows={6} cols={mobile ? 3 : 8} />
       ) : filtered.length === 0 ? (
         <div style={s.emptyState}>
           <CalendarDays size={36} color="#e2e8f0" />
           <p style={{ color: '#94a3b8', margin: '0.5rem 0 0' }}>Nenhum agendamento encontrado.</p>
+        </div>
+      ) : mobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {filtered.map((a) => {
+            const dataFmt = new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR');
+            const sc = STATUS_COLORS[a.status] ?? {};
+            return (
+              <div
+                key={a.id}
+                style={{
+                  background: a.status === 'pendente' ? '#fffbeb' : '#fff',
+                  borderRadius: 10,
+                  padding: '1rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  borderLeft: `3px solid ${sc.color ?? '#e2e8f0'}`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.5rem' }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '0.9rem', color: '#1e293b' }}>{dataFmt} às {a.hora?.slice(0, 5) ?? '--'}</p>
+                    <p style={{ margin: '0.15rem 0 0', fontSize: '0.82rem', color: '#64748b' }}>{a.patients?.nome ?? 'Paciente não informado'}</p>
+                  </div>
+                  <span style={{ ...s.badge, ...sc, flexShrink: 0 }}>{a.status}</span>
+                </div>
+                <div style={{ fontSize: '0.8rem', color: '#64748b', display: 'flex', flexWrap: 'wrap', gap: '0.25rem 0.75rem', marginBottom: '0.6rem' }}>
+                  {a.users?.nome && <span>Psicólogo: {a.users.nome}</span>}
+                  {a.rooms?.nome && <span>Sala: {a.rooms.nome}</span>}
+                  <span style={{ background: '#f1f5f9', borderRadius: 4, padding: '0.1rem 0.4rem', color: '#475569', fontSize: '0.75rem' }}>
+                    {a.tipo === 'convenio' ? 'Convênio' : 'Particular'}
+                  </span>
+                </div>
+                {(a.status === 'pendente' || (a.status !== 'cancelado' && a.status !== 'concluido')) && (
+                  <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap' }}>
+                    {a.status === 'pendente' && (
+                      <button onClick={() => setConfirmTarget(a)} style={s.btnConfirm}>
+                        <CheckCircle2 size={12} /> Confirmar
+                      </button>
+                    )}
+                    {a.status !== 'cancelado' && a.status !== 'concluido' && (
+                      <button onClick={() => setCancelTarget(a)} style={s.btnCancel}>
+                        <XCircle size={12} /> Cancelar
+                      </button>
+                    )}
+                  </div>
+                )}
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div style={s.tableWrap}>
@@ -219,9 +278,9 @@ export default function Appointments() {
                 <tr key={a.id} style={{ ...s.tr, background: a.status === 'pendente' ? '#fffbeb' : 'transparent' }}>
                   <td style={s.td}>{new Date(a.data + 'T00:00:00').toLocaleDateString('pt-BR')}</td>
                   <td style={s.td}>{a.hora?.slice(0, 5)}</td>
-                  <td style={{ ...s.td, fontWeight: 500 }}>{a.patients?.nome ?? '—'}</td>
-                  <td style={s.td}>{a.users?.nome ?? '—'}</td>
-                  <td style={s.td}>{a.rooms?.nome ?? '—'}</td>
+                  <td style={{ ...s.td, fontWeight: 500 }}>{a.patients?.nome ?? 'Não informado'}</td>
+                  <td style={s.td}>{a.users?.nome ?? 'Não informado'}</td>
+                  <td style={s.td}>{a.rooms?.nome ?? 'Não informada'}</td>
                   <td style={s.td}>{a.tipo === 'convenio' ? 'Convênio' : 'Particular'}</td>
                   <td style={s.td}>
                     <span style={{ ...s.badge, ...(STATUS_COLORS[a.status] ?? {}) }}>

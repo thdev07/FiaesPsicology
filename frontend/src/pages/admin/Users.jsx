@@ -7,11 +7,22 @@ const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }
 const EMPTY_FORM = { nome: '', email: '', password: '', role: 'psicologo', registro_profissional: '' };
 const EMPTY_EDIT = { nome: '', valor_consulta_particular: '', percentual_repasse: '' };
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 const ROLE_LABEL = { admin: 'Administrador', psicologo: 'Psicólogo', paciente: 'Paciente' };
 const ROLE_COLOR = { admin: '#7c3aed', psicologo: '#0284c7', paciente: '#059669' };
 const ROLES = ['', 'psicologo', 'admin', 'paciente'];
 
 export default function Users() {
+  const mobile = useIsMobile();
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
@@ -104,7 +115,7 @@ export default function Users() {
 
   return (
     <motion.div {...pageAnim}>
-      <div style={s.topbar}>
+      <div style={{ ...s.topbar, flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <UserCog size={22} color="#3b82f6" />
           <h1 style={s.title}>Usuários</h1>
@@ -144,6 +155,33 @@ export default function Users() {
         <p style={{ color: '#94a3b8' }}>Carregando...</p>
       ) : filtered.length === 0 ? (
         <p style={{ color: '#94a3b8' }}>Nenhum usuário encontrado.</p>
+      ) : mobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {filtered.map((u) => {
+            const roleColor = ROLE_COLOR[u.role] ?? '#64748b';
+            return (
+              <div key={u.id} style={{ background: '#fff', borderRadius: 10, padding: '1rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', borderLeft: `3px solid ${roleColor}` }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.35rem' }}>
+                  <p style={{ margin: 0, fontWeight: 700, fontSize: '0.95rem', color: '#1e293b' }}>{u.nome}</p>
+                  <span style={{ ...s.badge, background: roleColor + '20', color: roleColor, flexShrink: 0 }}>
+                    {ROLE_LABEL[u.role] ?? u.role}
+                  </span>
+                </div>
+                <p style={{ margin: '0 0 0.2rem', fontSize: '0.8rem', color: '#64748b' }}>{u.email}</p>
+                <div style={{ fontSize: '0.78rem', color: '#64748b', display: 'flex', flexWrap: 'wrap', gap: '0.2rem 0.75rem', marginBottom: '0.5rem' }}>
+                  {u.registro_profissional && <span>CRP: {u.registro_profissional}</span>}
+                  {u.valor_consulta_particular != null && <span>Consulta: R$ {Number(u.valor_consulta_particular).toFixed(2)}</span>}
+                  {u.percentual_repasse != null && <span>Repasse: {u.percentual_repasse}%</span>}
+                  <span>Desde {new Date(u.created_at).toLocaleDateString('pt-BR')}</span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button onClick={() => openEdit(u)} style={s.btnEdit}>Editar</button>
+                  <button onClick={() => handleDelete(u.id)} style={s.btnDelete}>Remover</button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
       ) : (
         <div style={s.tableWrap}>
           <table style={s.table}>
@@ -164,12 +202,12 @@ export default function Users() {
                       {ROLE_LABEL[u.role] ?? u.role}
                     </span>
                   </td>
-                  <td style={s.td}>{u.registro_profissional ?? '—'}</td>
+                  <td style={s.td}>{u.registro_profissional ?? 'Não informado'}</td>
                   <td style={s.td}>
-                    {u.valor_consulta_particular != null ? `R$ ${Number(u.valor_consulta_particular).toFixed(2)}` : '—'}
+                    {u.valor_consulta_particular != null ? `R$ ${Number(u.valor_consulta_particular).toFixed(2)}` : 'Não definido'}
                   </td>
                   <td style={s.td}>
-                    {u.percentual_repasse != null ? `${u.percentual_repasse}%` : '—'}
+                    {u.percentual_repasse != null ? `${u.percentual_repasse}%` : 'Não definido'}
                   </td>
                   <td style={s.td}>{new Date(u.created_at).toLocaleDateString('pt-BR')}</td>
                   <td style={s.td}>
@@ -232,7 +270,7 @@ export default function Users() {
         <div style={s.overlay}>
           <motion.div style={s.modal} initial={{ opacity: 0, y: 12, scale: 0.98 }} animate={{ opacity: 1, y: 0, scale: 1 }} transition={{ duration: 0.2 }}>
             <div style={s.modalHeader}>
-              <h2 style={s.modalTitle}>Editar — {editing.nome}</h2>
+              <h2 style={s.modalTitle}>Editar: {editing.nome}</h2>
               <button onClick={() => setShowEditModal(false)} style={s.modalClose}><X size={18} /></button>
             </div>
             <form onSubmit={handleEditSave} style={s.form}>
@@ -283,7 +321,7 @@ const s = {
   btnSecondary: { padding: '0.5rem 1.1rem', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#fff', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '0.875rem' },
   btnEdit: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #e2e8f0', background: '#fff', cursor: 'pointer', fontSize: '0.8rem', color: '#334155' },
   btnDelete: { padding: '0.3rem 0.65rem', borderRadius: '4px', border: '1px solid #fecaca', background: '#fff5f5', cursor: 'pointer', fontSize: '0.8rem', color: '#dc2626' },
-  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50 },
+  overlay: { position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.45)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 50, padding: '1rem' },
   modal: { background: '#fff', borderRadius: '12px', padding: '1.75rem', width: '100%', maxWidth: '460px', boxShadow: '0 4px 16px rgba(0,0,0,0.12)', maxHeight: '90vh', overflowY: 'auto' },
   modalHeader: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   modalTitle: { margin: 0, fontSize: '1.15rem', fontWeight: 700, color: '#1e293b' },

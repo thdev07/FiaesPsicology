@@ -8,6 +8,16 @@ import { SkeletonTable } from '../../components/ui/Skeleton';
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 const EMPTY_FORM = { tipo: 'receita', categoria: '', valor: '', status_pagamento: 'pendente', consulta_id: '' };
 
+function useIsMobile() {
+  const [mobile, setMobile] = useState(window.innerWidth < 768);
+  useEffect(() => {
+    const fn = () => setMobile(window.innerWidth < 768);
+    window.addEventListener('resize', fn);
+    return () => window.removeEventListener('resize', fn);
+  }, []);
+  return mobile;
+}
+
 const TIPO_COLORS = {
   receita: { background: '#dcfce7', color: '#166534' },
   despesa: { background: '#fee2e2', color: '#991b1b' },
@@ -25,6 +35,7 @@ function fmt(value) {
 
 export default function Financial() {
   const { show: toast } = useToast();
+  const mobile = useIsMobile();
   const [transactions, setTransactions] = useState([]);
   const [summary, setSummary] = useState({ receitas: 0, despesas: 0, saldo: 0 });
   const [loading, setLoading] = useState(true);
@@ -113,7 +124,7 @@ export default function Financial() {
 
   return (
     <motion.div {...pageAnim}>
-      <div style={s.topbar}>
+      <div style={{ ...s.topbar, flexWrap: 'wrap', gap: '0.75rem' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
           <DollarSign size={22} color="#3b82f6" />
           <h1 style={s.title}>Financeiro</h1>
@@ -152,7 +163,7 @@ export default function Financial() {
             onChange={(e) => setSearch(e.target.value)}
           />
         </div>
-        <div style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {[['', 'Todos'], ['receita', 'Receitas'], ['despesa', 'Despesas']].map(([val, label]) => (
             <button
               key={val}
@@ -171,11 +182,65 @@ export default function Financial() {
       </div>
 
       {loading ? (
-        <SkeletonTable rows={6} cols={7} />
+        <SkeletonTable rows={6} cols={mobile ? 3 : 7} />
       ) : filtered.length === 0 ? (
         <div style={s.emptyState}>
           <DollarSign size={36} color="#e2e8f0" />
           <p style={{ color: '#94a3b8', margin: '0.5rem 0 0' }}>Nenhuma transação encontrada.</p>
+        </div>
+      ) : mobile ? (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          {filtered.map((tx) => {
+            const tipoC = TIPO_COLORS[tx.tipo] ?? {};
+            const pgtoC = PGTO_COLORS[tx.status_pagamento] ?? {};
+            const consulta = tx.appointments
+              ? `${tx.appointments.patients?.nome ?? '?'} — ${new Date(tx.appointments.data + 'T00:00:00').toLocaleDateString('pt-BR')}`
+              : null;
+            return (
+              <div
+                key={tx.id}
+                style={{
+                  background: '#fff',
+                  borderRadius: 10,
+                  padding: '1rem',
+                  boxShadow: '0 1px 3px rgba(0,0,0,0.08)',
+                  borderLeft: `3px solid ${tipoC.color ?? '#e2e8f0'}`,
+                }}
+              >
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '0.4rem' }}>
+                  <div>
+                    <p style={{ margin: 0, fontWeight: 700, fontSize: '1rem', color: tx.tipo === 'receita' ? '#16a34a' : '#dc2626' }}>
+                      {fmt(tx.valor)}
+                    </p>
+                    <p style={{ margin: '0.1rem 0 0', fontSize: '0.8rem', color: '#64748b' }}>
+                      {new Date(tx.created_at).toLocaleDateString('pt-BR')}
+                    </p>
+                  </div>
+                  <div style={{ display: 'flex', gap: '0.35rem', flexDirection: 'column', alignItems: 'flex-end' }}>
+                    <span style={{ ...s.badge, ...tipoC }}>{tx.tipo}</span>
+                    <span style={{ ...s.badge, ...pgtoC }}>{tx.status_pagamento}</span>
+                  </div>
+                </div>
+                {tx.categoria && (
+                  <p style={{ margin: '0 0 0.25rem', fontSize: '0.85rem', color: '#334155', fontWeight: 500 }}>{tx.categoria}</p>
+                )}
+                {consulta && (
+                  <p style={{ margin: '0 0 0.5rem', fontSize: '0.78rem', color: '#64748b' }}>{consulta}</p>
+                )}
+                <div style={{ display: 'flex', gap: '0.4rem' }}>
+                  <button onClick={() => openEdit(tx)} style={s.btnSmall}>Editar</button>
+                  {tx.status_pagamento === 'pendente' && (
+                    <button
+                      onClick={() => handleMarkPaid(tx)}
+                      style={{ ...s.btnSmall, background: '#dcfce7', color: '#16a34a', borderColor: '#bbf7d0' }}
+                    >
+                      Marcar pago
+                    </button>
+                  )}
+                </div>
+              </div>
+            );
+          })}
         </div>
       ) : (
         <div style={s.tableWrap}>
@@ -194,11 +259,11 @@ export default function Financial() {
                   <td style={s.td}>
                     <span style={{ ...s.badge, ...TIPO_COLORS[tx.tipo] }}>{tx.tipo}</span>
                   </td>
-                  <td style={s.td}>{tx.categoria ?? '—'}</td>
+                  <td style={s.td}>{tx.categoria ?? 'Sem categoria'}</td>
                   <td style={s.td}>
                     {tx.appointments
                       ? `${tx.appointments.patients?.nome ?? '?'} — ${new Date(tx.appointments.data + 'T00:00:00').toLocaleDateString('pt-BR')}`
-                      : '—'}
+                      : 'Sem consulta'}
                   </td>
                   <td style={{ ...s.td, fontWeight: 600, color: tx.tipo === 'receita' ? '#16a34a' : '#dc2626' }}>
                     {fmt(tx.valor)}
@@ -300,7 +365,7 @@ const modalBox = {
 const s = {
   topbar: { display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' },
   title: { fontSize: '1.5rem', fontWeight: 700, color: '#1e293b', margin: 0 },
-  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem' },
+  summaryGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: '1rem', marginBottom: '1.25rem' },
   summaryCard: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)' },
   summaryLabel: { fontSize: '0.75rem', color: '#94a3b8', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px', margin: 0 },
   summaryValue: { fontSize: '1.6rem', fontWeight: 800, margin: 0, lineHeight: 1 },
