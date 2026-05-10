@@ -1,7 +1,9 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { Receipt, TrendingUp, AlertCircle, FileStack } from 'lucide-react';
+import { Receipt, TrendingUp, AlertCircle, FileStack, Download, FileText } from 'lucide-react';
 import { api } from '../../services/api';
+import { SkeletonTable } from '../../components/ui/Skeleton';
+import { generateReceipt } from '../../utils/generateReceipt';
 
 const pageAnim = { initial: { opacity: 0, y: 16 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.3 } };
 
@@ -17,18 +19,26 @@ const PGTO_COLORS = {
 
 export default function PatientDocuments() {
   const [debts, setDebts] = useState([]);
+  const [patientName, setPatientName] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    api.get('/financial/my-debts')
-      .then((data) => setDebts(Array.isArray(data) ? data : []))
-      .catch((err) => setError(err?.error ?? 'Erro ao carregar cobranças.'))
+    Promise.all([
+      api.get('/financial/my-debts').catch(() => []),
+      api.get('/patients/me').catch(() => null),
+    ]).then(([data, me]) => {
+      setDebts(Array.isArray(data) ? data : []);
+      setPatientName(me?.nome ?? '');
+    }).catch((err) => setError(err?.error ?? 'Erro ao carregar dados.'))
       .finally(() => setLoading(false));
   }, []);
 
-  const totalPago = debts.filter((d) => d.status_pagamento === 'pago').reduce((sum, d) => sum + Number(d.valor), 0);
-  const totalPendente = debts.filter((d) => d.status_pagamento === 'pendente').reduce((sum, d) => sum + Number(d.valor), 0);
+  const paid = debts.filter((d) => d.status_pagamento === 'pago');
+  const totalPago = paid.reduce((sum, d) => sum + Number(d.valor), 0);
+  const totalPendente = debts
+    .filter((d) => d.status_pagamento === 'pendente')
+    .reduce((sum, d) => sum + Number(d.valor), 0);
 
   return (
     <motion.div {...pageAnim}>
@@ -61,19 +71,23 @@ export default function PatientDocuments() {
         </motion.div>
       </div>
 
+      {/* Extrato de cobranças */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Extrato de cobranças</h2>
         {error && <p style={s.error}>{error}</p>}
         {loading ? (
-          <p style={{ color: '#94a3b8' }}>Carregando...</p>
+          <SkeletonTable rows={4} cols={6} />
         ) : debts.length === 0 ? (
-          <p style={{ color: '#94a3b8' }}>Nenhuma cobrança encontrada.</p>
+          <div style={s.emptyBox}>
+            <FileStack size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
+            <p style={s.emptyText}>Nenhuma cobrança encontrada.</p>
+          </div>
         ) : (
           <div style={s.tableWrap}>
             <table style={s.table}>
               <thead>
                 <tr>
-                  {['Data', 'Psicólogo', 'Descrição', 'Valor', 'Status'].map((h) => (
+                  {['Data', 'Psicólogo', 'Descrição', 'Valor', 'Status', 'Recibo'].map((h) => (
                     <th key={h} style={s.th}>{h}</th>
                   ))}
                 </tr>
@@ -94,6 +108,20 @@ export default function PatientDocuments() {
                         {d.status_pagamento}
                       </span>
                     </td>
+                    <td style={s.td}>
+                      {d.status_pagamento === 'pago' ? (
+                        <button
+                          onClick={() => generateReceipt(d, patientName)}
+                          style={s.receiptBtn}
+                          title="Baixar recibo"
+                        >
+                          <Download size={13} />
+                          Recibo
+                        </button>
+                      ) : (
+                        <span style={{ color: '#cbd5e1', fontSize: '0.8rem' }}>—</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -102,12 +130,53 @@ export default function PatientDocuments() {
         )}
       </div>
 
+      {/* Recibos disponíveis */}
+      {!loading && paid.length > 0 && (
+        <div style={s.section}>
+          <h2 style={s.sectionTitle}>Recibos disponíveis</h2>
+          <div style={s.receiptGrid}>
+            {paid.map((d) => {
+              const dataConsulta = d.appointments?.data
+                ? new Date(`${d.appointments.data}T00:00:00`).toLocaleDateString('pt-BR')
+                : '—';
+              return (
+                <motion.div
+                  key={d.id}
+                  whileHover={{ y: -2 }}
+                  transition={{ duration: 0.15 }}
+                  style={s.receiptCard}
+                >
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                    <div style={s.receiptIcon}>
+                      <FileText size={18} color="#3b82f6" />
+                    </div>
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <p style={s.receiptCardTitle}>{d.categoria ?? 'Consulta'}</p>
+                      <p style={s.receiptCardMeta}>{dataConsulta} · {d.appointments?.users?.nome ?? '—'}</p>
+                      <p style={{ ...s.receiptCardMeta, color: '#16a34a', fontWeight: 700 }}>{fmt(d.valor)}</p>
+                    </div>
+                  </div>
+                  <button
+                    onClick={() => generateReceipt(d, patientName)}
+                    style={s.receiptCardBtn}
+                  >
+                    <Download size={14} />
+                    Baixar recibo
+                  </button>
+                </motion.div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* Documentos médicos (laudos) */}
       <div style={s.section}>
         <h2 style={s.sectionTitle}>Documentos médicos</h2>
         <div style={s.emptyBox}>
           <Receipt size={28} color="#cbd5e1" style={{ marginBottom: '0.75rem' }} />
-          <p style={s.emptyText}>Laudos e recibos liberados pelo psicólogo aparecerão aqui.</p>
-          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>Funcionalidade disponível em breve.</p>
+          <p style={s.emptyText}>Laudos e atestados liberados pelo psicólogo aparecerão aqui.</p>
+          <p style={{ color: '#94a3b8', fontSize: '0.85rem', margin: 0 }}>Em breve disponível.</p>
         </div>
       </div>
     </motion.div>
@@ -129,6 +198,13 @@ const s = {
   tr: { borderTop: '1px solid #f1f5f9' },
   td: { padding: '0.75rem 1rem', fontSize: '0.875rem', color: '#334155' },
   badge: { padding: '0.2rem 0.6rem', borderRadius: '999px', fontSize: '0.75rem', fontWeight: 600 },
+  receiptBtn: { display: 'inline-flex', alignItems: 'center', gap: '0.3rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '0.3rem 0.65rem', fontSize: '0.75rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit', whiteSpace: 'nowrap' },
   emptyBox: { background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '8px', padding: '2rem', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center' },
   emptyText: { color: '#475569', margin: '0 0 0.5rem', fontWeight: 500 },
+  receiptGrid: { display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '1rem' },
+  receiptCard: { background: '#fff', borderRadius: '8px', padding: '1.25rem', boxShadow: '0 1px 3px rgba(0,0,0,0.08)', display: 'flex', flexDirection: 'column', gap: '1rem' },
+  receiptIcon: { width: 40, height: 40, borderRadius: '8px', background: '#eff6ff', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 },
+  receiptCardTitle: { fontSize: '0.875rem', fontWeight: 700, color: '#1e293b', margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' },
+  receiptCardMeta: { fontSize: '0.78rem', color: '#64748b', margin: '0.2rem 0 0' },
+  receiptCardBtn: { display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', borderRadius: '6px', padding: '0.5rem', fontSize: '0.8rem', fontWeight: 600, cursor: 'pointer', fontFamily: 'inherit' },
 };
