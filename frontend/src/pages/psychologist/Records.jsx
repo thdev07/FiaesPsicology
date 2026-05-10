@@ -81,10 +81,10 @@ export default function Records() {
 
   async function handleSaveDoc(e) {
     e.preventDefault();
-    if (!appointment?.patients?.id) return toast('Paciente não identificado.', 'error');
+    if (!appointment?.paciente_id) return toast('Paciente não identificado.', 'error');
     setSavingDoc(true);
     try {
-      const payload = { ...docForm, consulta_id: consultaId, patient_id: appointment.patients.id };
+      const payload = { ...docForm, consulta_id: consultaId, patient_id: appointment.paciente_id };
       if (editingDoc) {
         await api.put(`/documents/${editingDoc.id}`, payload);
         toast('Documento atualizado.', 'success');
